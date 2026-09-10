@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Sign in')}"></head>
+<body class="login-page">
+<main class="login-card">
+    <div class="login-logo">
+        <span class="brand-mark">USP</span>
+        <div>
+            <h1>SpaceHub</h1>
+            <p>Smart Classroom & Computer-Lab Booking</p>
+        </div>
+    </div>
+    <div th:if="${param.error}" class="alert error">Invalid credentials or inactive account.</div>
+    <div th:if="${param.logout}" class="alert success">You have signed out.</div>
+    <form th:action="@{/login}" method="post" class="stack">
+        <label>Email<input name="username" type="email" placeholder="name@usp.ac.fj" required autofocus></label>
+        <label>Password<input name="password" type="password" required></label>
+        <button class="btn primary" type="submit">Sign in</button>
+    </form>
+    <details class="demo">
+        <summary>Demo accounts</summary>
+        <p><b>Admin:</b> admin@usp.ac.fj / Admin@123</p>
+        <p><b>IT Admin:</b> itadmin@usp.ac.fj / ITAdmin@123</p>
+        <p><b>Lecturers:</b> lecturer1@usp.ac.fj or lecturer2@usp.ac.fj / Lecturer@123</p>
+        <p><b>Student:</b> student1@usp.ac.fj / Student@123</p>
+    </details>
+</main>
+</body>
+</html>
