@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('My Bookings')}"></head>
+<body>
+<nav th:replace="~{fragments :: nav}"></nav>
+<main class="container">
+    <div th:replace="~{fragments :: alerts}"></div>
+    <section class="page-head">
+        <div>
+            <p class="eyebrow">REQUESTS & DECISIONS</p>
+            <h1>My bookings</h1>
+            <p>Pending requests, approvals, rejections, cancellations, and alternative offers.</p>
+        </div>
+        <a class="btn primary" th:href="@{/search}">New request</a>
+    </section>
+    <section class="panel" th:if="${!#lists.isEmpty(alternatives)}">
+        <h2>Alternative offers</h2>
+        <article class="alternative" th:each="a:${alternatives}">
+            <div>
+                <b th:text="${a.room.code}+' · '+${a.date}"></b>
+                <p th:text="${a.startTime}+'–'+${a.endTime}+' · Match '+${a.score}+'%'"></p>
+                <p th:text="${a.explanation}"></p>
+            </div>
+            <div class="buttons">
+                <form th:action="@{'/bookings/alternatives/'+${a.id}+'/accept'}" method="post">
+                    <button class="btn primary">Accept</button>
+                </form>
+                <form th:action="@{'/bookings/alternatives/'+${a.id}+'/reject'}" method="post">
+                    <button class="btn danger">Reject</button>
+                </form>
+            </div>
+        </article>
+    </section>
+    <section class="panel table-wrap">
+        <table>
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Date/time</th>
+                <th>Room</th>
+                <th>Type / course</th>
+                <th>Students</th>
+                <th>Status</th>
+                <th>Decision</th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="b:${bookings}">
+                <td th:text="${b.id}"></td>
+                <td><b th:text="${b.date}"></b><br><span th:text="${b.startTime}+'–'+${b.endTime}"></span></td>
+                <td th:text="${b.room.code}"></td>
+                <td><b th:text="${b.type}"></b><br><span th:text="${b.course!=null?b.course.code:'ECA'}"></span></td>
+                <td th:text="${b.expectedStudents}"></td>
+                <td><span class="status" th:classappend="${b.status}" th:text="${b.status}"></span></td>
+                <td class="small"><span th:text="${b.adminDecisionReason!=null?b.adminDecisionReason:b.recommendationReason}"></span></td>
+                <td>
+                    <form th:if="${b.status.name()=='PENDING'||b.status.name()=='APPROVED'||b.status.name()=='ALTERNATIVE_PROPOSED'}" th:action="@{'/bookings/'+${b.id}+'/cancel'}" method="post">
+                        <button class="btn ghost small-btn">Cancel</button>
+                    </form>
+                </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(bookings)}">
+                <td colspan="8" class="empty">No booking requests yet.</td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+</main>
+</body>
+</html>

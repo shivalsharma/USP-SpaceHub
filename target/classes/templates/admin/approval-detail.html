@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Conflict review')}"></head>
+<body>
+<nav th:replace="~{fragments :: nav}"></nav>
+<main class="container">
+    <div th:replace="~{fragments :: alerts}"></div>
+    <section class="page-head">
+        <div>
+            <p class="eyebrow">EXPLAINABLE DECISION</p>
+            <h1 th:text="'Conflict review · '+${focus.room.code}"></h1>
+            <p th:text="${focus.date}+' '+${focus.startTime}+'–'+${focus.endTime}"></p>
+        </div>
+        <a class="btn ghost" th:href="@{/admin/approvals}">Back to approvals</a>
+    </section>
+    <div class="rule-banner">
+        <b>Decision order:</b> Hard constraints → LAB/TUTORIAL &gt; ECA → Course need → Time fairness → Room fairness → Capacity/suitability → Alternative availability.
+    </div>
+    <article class="approval-card" th:each="r,stat:${recommendations}" th:classappend="${stat.index==0&&r.valid}?' recommended':''">
+        <div class="approval-head">
+            <div>
+                <span class="badge best" th:if="${stat.index==0&&r.valid}">SYSTEM RECOMMENDATION</span>
+                <h2 th:text="'#'+${r.booking.id}+' · '+${r.booking.requester.name}"></h2>
+                <p th:text="${r.booking.course!=null?r.booking.course.code:'ECA'}+' · '+${r.booking.type}+' · '+${r.booking.expectedStudents}+' students'"></p>
+            </div>
+            <div class="score">
+                <strong th:text="${r.displayScore}"></strong>
+                <span>approval score</span>
+            </div>
+        </div>
+        <div class="score-grid">
+            <span>Valid <b th:text="${r.valid?'YES':'NO'}"></b></span>
+            <span>Priority <b th:text="${r.priorityLevel==2?'ACADEMIC':'ECA'}"></b></span>
+            <span>Course need <b th:text="${#numbers.formatDecimal(r.courseNeed,1,0)}+'%'"></b></span>
+            <span>Time fairness <b th:text="${#numbers.formatDecimal(r.timeFairness,1,0)}+'%'"></b></span>
+            <span>Room fairness <b th:text="${#numbers.formatDecimal(r.roomFairness,1,0)}+'%'"></b></span>
+            <span>Suitability <b th:text="${#numbers.formatDecimal(r.suitability,1,0)}+'%'"></b></span>
+        </div>
+        <p class="explain" th:text="${r.explanation}"></p>
+        <p><b>Best alternative:</b> <span th:text="${r.suggestedAlternative}"></span></p>
+        <div class="buttons">
+            <form th:action="@{'/admin/approvals/'+${r.booking.id}+'/approve'}" method="post">
+                <input name="reason" placeholder="Optional decision reason">
+                <button class="btn primary" th:disabled="${!r.valid}">Approve</button>
+            </form>
+            <form th:action="@{'/admin/approvals/'+${r.booking.id}+'/reject'}" method="post">
+                <input name="reason" placeholder="Rejection reason" required>
+                <button class="btn danger">Reject</button>
+            </form>
+        </div>
+    </article>
+    <section class="panel">
+        <h2>Administrative override</h2>
+        <p>Only configured quota rules (course/lecturer/prime-time limits) may be overridden. Safety, access, maintenance, facility, timetable and double-booking rules remain non-overridable.</p>
+        <form th:action="@{'/admin/approvals/'+${focus.id}+'/override'}" method="post" class="inline-form">
+            <input name="reason" placeholder="Mandatory override reason" required>
+            <button class="btn warning">Approve with logged override</button>
+        </form>
+    </section>
+</main>
+</body>
+</html>

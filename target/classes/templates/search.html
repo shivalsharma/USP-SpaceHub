@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Optimized Search')}"></head>
+<body>
+<nav th:replace="~{fragments :: nav}"></nav>
+<main class="container">
+  <section class="page-head">
+    <div>
+      <p class="eyebrow">M2 OPTIMIZATION ENGINE</p>
+      <h1>Optimized room search</h1>
+      <p>Choose from predefined options. Hard constraints are applied first, then valid rooms are ranked for suitability, capacity, fairness, course need and utilization.</p>
+    </div>
+  </section>
+
+  <form th:action="@{/search}" th:object="${searchForm}" method="post" class="panel form-grid" id="searchForm">
+    <label>Booking type
+      <select th:field="*{bookingType}" required>
+        <option th:each="t:${bookingTypes}" th:value="${t}" th:text="${t}"></option>
+      </select>
+    </label>
+    <label>Course
+      <select th:field="*{courseId}">
+        <option value="">— ECA / no course —</option>
+        <option th:each="c:${courses}" th:value="${c.id}" th:text="${c.code}+' · '+${c.name}"></option>
+      </select>
+      <small>LAB and TUTORIAL require one of your assigned courses.</small>
+    </label>
+    <label>Date<input type="date" th:field="*{date}" required></label>
+    <label>Start time<input type="time" th:field="*{startTime}" step="1800" required></label>
+    <label>End time<input type="time" th:field="*{endTime}" step="1800" required></label>
+    <label>Expected students<input type="number" min="1" th:field="*{expectedStudents}" required></label>
+
+    <fieldset class="span-2 choice-section">
+      <legend>Required facilities <small>Hard constraints</small></legend>
+      <p class="field-help">Tick only facilities that must be available and operational. Course-required facilities are added automatically.</p>
+      <input type="hidden" th:field="*{requiredFacilitiesCsv}" id="requiredFacilitiesCsv">
+      <div class="choice-grid" data-choice-group="requiredFacilitiesCsv">
+        <label class="choice" th:each="f:${facilityOptions}">
+          <input type="checkbox" th:value="${f}" th:checked="${searchForm.requiredFacilitiesCsv != null and #strings.contains(searchForm.requiredFacilitiesCsv,f)}">
+          <span th:text="${#strings.replace(f,'_',' ')}"></span>
+        </label>
+      </div>
+    </fieldset>
+
+    <fieldset class="span-2 choice-section">
+      <legend>Optional facilities <small>Soft preference</small></legend>
+      <p class="field-help">Tick facilities you would like, but that are not essential.</p>
+      <input type="hidden" th:field="*{optionalFacilitiesCsv}" id="optionalFacilitiesCsv">
+      <div class="choice-grid" data-choice-group="optionalFacilitiesCsv">
+        <label class="choice" th:each="f:${facilityOptions}">
+          <input type="checkbox" th:value="${f}" th:checked="${searchForm.optionalFacilitiesCsv != null and #strings.contains(searchForm.optionalFacilitiesCsv,f)}">
+          <span th:text="${#strings.replace(f,'_',' ')}"></span>
+        </label>
+      </div>
+    </fieldset>
+
+    <label>Preferred building <small>Soft preference</small>
+      <select th:field="*{preferredBuilding}">
+        <option value="">No preference</option>
+        <option th:each="b:${buildings}" th:value="${b}" th:text="${b}"></option>
+      </select>
+    </label>
+    <label>Flexible time
+      <select th:field="*{flexibilityHours}">
+        <option value="0">Exact time only</option>
+        <option value="1">± 1 hour</option>
+        <option value="2">± 2 hours</option>
+        <option value="3">± 3 hours</option>
+        <option value="4">± 4 hours</option>
+      </select>
+    </label>
+    <label class="check option-check span-2"><input type="checkbox" th:field="*{flexibleDate}"> Search nearby dates (±2 days)</label>
+    <div class="span-2"><button class="btn primary" type="submit">Run optimized search</button></div>
+  </form>
+
+  <section th:if="${result!=null}" class="results">
+    <div class="alert error" th:each="v:${result.globalViolations}" th:text="${v}"></div>
+    <article class="recommend-card" th:each="rec,stat:${result.recommendations}">
+      <div class="rank" th:text="${stat.index+1}">1</div>
+      <div class="rec-main">
+        <div class="rec-title"><div><span class="badge best" th:if="${stat.index==0}">BEST MATCH</span><h2 th:text="${rec.room.code}+' · '+${rec.room.name}"></h2><p th:text="${rec.room.building}+' · Capacity '+${rec.room.capacity}+' · '+${rec.room.operationalComputers}+' operational computers'"></p></div><div class="score"><strong th:text="${rec.score}+'%'">94%</strong><span>match</span></div></div>
+        <div class="score-grid"><span>Facility <b th:text="${rec.facilityScore}"></b></span><span>Capacity <b th:text="${rec.capacityScore}"></b></span><span>Time fairness <b th:text="${rec.timeFairnessScore}"></b></span><span>Course need <b th:text="${rec.courseNeedScore}"></b></span><span>Utilization <b th:text="${rec.utilizationScore}"></b></span><span>Room fairness <b th:text="${rec.roomFairnessScore}"></b></span></div>
+        <ul class="reasons"><li th:each="r:${rec.reasons}" th:text="${r}"></li></ul>
+        <form th:action="@{/bookings/submit}" method="post" class="book-form">
+          <input type="hidden" name="roomId" th:value="${rec.room.id}"><input type="hidden" name="score" th:value="${rec.score}"><input type="hidden" name="courseId" th:value="${searchForm.courseId}"><input type="hidden" name="bookingType" th:value="${searchForm.bookingType}"><input type="hidden" name="date" th:value="${searchForm.date}"><input type="hidden" name="startTime" th:value="${searchForm.startTime}"><input type="hidden" name="endTime" th:value="${searchForm.endTime}"><input type="hidden" name="expectedStudents" th:value="${searchForm.expectedStudents}"><input type="hidden" name="requiredFacilitiesCsv" th:value="${searchForm.requiredFacilitiesCsv}">
+          <button class="btn primary" type="submit">Book this option</button><span class="warning-text" th:if="${rec.pendingCompetition>0}" th:text="${rec.pendingCompetition}+' competing pending request(s) — admin conflict ranking will apply.'"></span>
+        </form>
+      </div>
+    </article>
+
+    <section class="panel" th:if="${!#lists.isEmpty(result.alternatives)}">
+      <div class="panel-head"><div><h2>Flexible alternatives</h2><p>These pass the same hard constraints with the smallest requested date/time changes.</p></div></div>
+      <article class="alternative" th:each="a:${result.alternatives}">
+        <div><b th:text="${a.room.code}+' · '+${a.room.name}"></b><p th:text="${a.date}+' · '+${a.startTime}+'–'+${a.endTime}+' · '+${a.score}+'% match'"></p><small th:text="${#strings.listJoin(a.reasons,' ')}"></small></div>
+        <form th:action="@{/bookings/submit}" method="post"><input type="hidden" name="roomId" th:value="${a.room.id}"><input type="hidden" name="score" th:value="${a.score}"><input type="hidden" name="courseId" th:value="${searchForm.courseId}"><input type="hidden" name="bookingType" th:value="${searchForm.bookingType}"><input type="hidden" name="date" th:value="${a.date}"><input type="hidden" name="startTime" th:value="${a.startTime}"><input type="hidden" name="endTime" th:value="${a.endTime}"><input type="hidden" name="expectedStudents" th:value="${searchForm.expectedStudents}"><input type="hidden" name="requiredFacilitiesCsv" th:value="${searchForm.requiredFacilitiesCsv}"><button class="btn primary small-btn">Book alternative</button></form>
+      </article>
+    </section>
+    <details class="panel muted" th:if="${!#maps.isEmpty(result.excludedRoomReasons)}"><summary>Why other rooms were excluded</summary><div class="excluded" th:each="entry:${result.excludedRoomReasons}"><b th:text="'Room ID '+${entry.key}"></b><span th:text="${#strings.listJoin(entry.value,' ')}"></span></div></details>
+  </section>
+</main>
+<script>
+(function(){
+  function sync(group){
+    const target=document.getElementById(group.dataset.choiceGroup);
+    const values=[...group.querySelectorAll('input[type="checkbox"]:checked')].map(x=>x.value);
+    target.value=values.join(', ');
+  }
+  document.querySelectorAll('[data-choice-group]').forEach(group=>{
+    group.querySelectorAll('input[type="checkbox"]').forEach(box=>box.addEventListener('change',()=>sync(group)));
+    sync(group);
+  });
+})();
+</script>
+</body></html>
