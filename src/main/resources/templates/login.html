@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Sign in')}"></head>
+<body class="login-page">
+
+
+<div class="login-shell">
+
+    <!-- LEFT SIDE -->
+    <section class="login-brand-panel">
+        <div class="login-brand-top">
+            <div class="login-logo-card">
+                <span class="brand-mark">USP</span>
+                <div class="brand-copy">
+                    <small>USP</small>
+                    <h1>SpaceHub</h1>
+                </div>
+            </div>
+
+            <div class="platform-pill">SMART CAMPUS PLATFORM</div>
+        </div>
+
+        <div class="login-brand-content">
+            <h2>Smarter spaces.<br>Better learning.</h2>
+            <p>
+                A centralized platform for managing classrooms, computer
+                laboratories and university spaces.
+            </p>
+
+            <div class="login-feature-list">
+                <div class="login-feature-item">
+                    <div class="feature-icon">⌕</div>
+                    <div>
+                        <h3>Smart Room Discovery</h3>
+                        <p>Find suitable rooms and laboratories quickly.</p>
+                    </div>
+                </div>
+
+                <div class="login-feature-item">
+                    <div class="feature-icon">▣</div>
+                    <div>
+                        <h3>Resource Management</h3>
+                        <p>Manage rooms, facilities and users efficiently.</p>
+                    </div>
+                </div>
+
+                <div class="login-feature-item">
+                    <div class="feature-icon">✓</div>
+                    <div>
+                        <h3>Role-Based Access</h3>
+                        <p>Secure access for students, lecturers and administrators.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="login-brand-footer">
+            The University of the South Pacific
+        </div>
+    </section>
+
+    <!-- RIGHT SIDE -->
+    <section class="login-form-panel">
+        <div class="login-form-overlay"></div>
+
+        <div class="login-form-card">
+            <div class="login-heading">
+                <p class="eyebrow">WELCOME BACK</p>
+                <h2>Sign in to SpaceHub</h2>
+                <p>Enter your USP account details to continue.</p>
+            </div>
+
+            <div th:if="${param.error}" class="alert error">
+                Invalid credentials or inactive account.
+            </div>
+
+            <div th:if="${param.logout}" class="alert success">
+                You have signed out successfully.
+            </div>
+
+            <form th:action="@{/login}" method="post" class="stack">
+                <label>
+                    Email address
+                    <div class="input-wrap">
+                        <span class="input-icon">@</span>
+                        <input name="username" type="email" placeholder="name@usp.ac.fj" required autofocus>
+                    </div>
+                </label>
+
+                <label>
+                    Password
+                    <div class="input-wrap password-wrap">
+                        <span class="input-icon">•</span>
+                        <input id="password" name="password" type="password" required>
+                        <button type="button" class="password-toggle" onclick="togglePassword()">Show</button>
+                    </div>
+                </label>
+
+                <button class="btn primary login-submit-btn" type="submit">
+                    Sign in <span>→</span>
+                </button>
+            </form>
+
+            <details class="demo">
+                <summary>Demo accounts</summary>
+                <div class="demo-list">
+                    <p><b>Admin:</b> admin@usp.ac.fj / Admin@123</p>
+                    <p><b>IT Admin:</b> itadmin@usp.ac.fj / ITAdmin@123</p>
+                    <p><b>Lecturers:</b> lecturer1@usp.ac.fj or lecturer2@usp.ac.fj / Lecturer@123</p>
+                    <p><b>Student:</b> student1@usp.ac.fj / Student@123</p>
+                </div>
+            </details>
+
+            <p class="login-help">
+                Having trouble signing in?
+                <a href="#">Contact the system administrator</a>
+            </p>
+
+            <div class="login-footer">
+                <span>USP SpaceHub</span>
+                <span>•</span>
+                <span>Smart Classroom & Computer-Lab Booking</span>
+            </div>
+        </div>
+    </section>
+
+</div>
+
+<script>
+    function togglePassword() {
+        const password = document.getElementById("password");
+        const button = document.querySelector(".password-toggle");
+
+        if (password.type === "password") {
+            password.type = "text";
+            button.textContent = "Hide";
+        } else {
+            password.type = "password";
+            button.textContent = "Show";
+        }
+    }
+</script>
+
+</body>
+</html>

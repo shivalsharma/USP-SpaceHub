@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Reports')}"></head>
+<body>
+<nav th:replace="~{fragments :: nav}"></nav>
+<main class="container">
+    <section class="page-head">
+        <div>
+            <p class="eyebrow">UTILIZATION & HISTORY</p>
+            <h1>Reports</h1>
+        </div>
+    </section>
+    <form th:action="@{/admin/reports}" method="get" class="panel inline-form">
+        <label>From <input type="date" name="from" th:value="${from}"></label>
+        <label>To <input type="date" name="to" th:value="${to}"></label>
+        <button class="btn primary">Refresh</button>
+        <a class="btn ghost" th:href="@{/admin/reports/bookings.csv(from=${from},to=${to})}">Export approved bookings CSV</a>
+    </form>
+    <section class="stats">
+        <div class="stat"><span>Approved in period</span><strong th:text="${approvedCount}"></strong></div>
+        <div class="stat"><span>Pending now</span><strong th:text="${pendingCount}"></strong></div>
+        <div class="stat" th:each="e:${byType}"><span th:text="${e.key}"></span><strong th:text="${e.value}"></strong></div>
+    </section>
+    <div class="grid-2">
+        <section class="panel table-wrap">
+            <h2>Room utilization</h2>
+            <table>
+                <thead><tr><th>Room</th><th>Bookings</th><th>Hours</th><th>Utilization</th></tr></thead>
+                <tbody>
+                <tr th:each="r:${rooms}">
+                    <td th:text="${r.code}+' · '+${r.name}"></td>
+                    <td th:text="${r.bookings}"></td>
+                    <td th:text="${r.hours}"></td>
+                    <td th:text="${r.utilization}+'%'"></td>
+                </tr>
+                </tbody>
+            </table>
+        </section>
+        <section class="panel table-wrap">
+            <h2>Course booking history</h2>
+            <table>
+                <thead><tr><th>Course</th><th>Approved bookings</th></tr></thead>
+                <tbody>
+                <tr th:each="c:${courses}">
+                    <td th:text="${c.code}+' · '+${c.name}"></td>
+                    <td th:text="${c.bookings}"></td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(courses)}">
+                    <td colspan="2" class="empty">No approved course bookings in range.</td>
+                </tr>
+                </tbody>
+            </table>
+        </section>
+    </div>
+</main>
+</body>
+</html>

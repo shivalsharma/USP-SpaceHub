@@ -1,0 +1,33 @@
+services:
+  db:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: usp_spacehub
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_USER: spacehub
+      MYSQL_PASSWORD: spacehubpass
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-prootpass"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+  app:
+    build: .
+    environment:
+      SPRING_PROFILES_ACTIVE: mysql
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_NAME: usp_spacehub
+      DB_USER: spacehub
+      DB_PASSWORD: spacehubpass
+    ports:
+      - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+volumes:
+  mysql_data:

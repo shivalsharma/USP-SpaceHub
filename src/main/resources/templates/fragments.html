@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org">
+
+
+<!-- =========================================================
+     SHARED HEAD
+     ========================================================= -->
+<head th:fragment="head(title)">
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title th:text="${title} + ' | USP SpaceHub'">
+        USP SpaceHub
+    </title>
+
+    <link rel="stylesheet"
+          th:href="@{/css/app.css}">
+
+</head>
+
+
+<body>
+
+
+<!-- =========================================================
+     SHARED NAVIGATION BAR
+     ========================================================= -->
+<nav th:fragment="nav"
+     class="topbar">
+
+    <div class="topbar-inner">
+
+
+        <!-- =================================================
+             SPACEHUB LOGO
+             ================================================= -->
+        <a th:href="@{/dashboard}"
+           class="nav-logo">
+
+
+            <!-- USP BLOCK -->
+            <div class="nav-logo-mark">
+
+                USP
+
+            </div>
+
+
+            <!-- USP / SPACEHUB TEXT -->
+            <div class="nav-logo-text">
+
+                <span class="nav-logo-small">
+                    USP
+                </span>
+
+                <span class="nav-logo-title">
+                    SpaceHub
+                </span>
+
+            </div>
+
+        </a>
+
+
+
+        <!-- =================================================
+             NAVIGATION LINKS
+             ================================================= -->
+        <div class="topbar-links">
+
+
+            <a th:href="@{/dashboard}">
+                Dashboard
+            </a>
+
+
+            <a th:href="@{/search}">
+                Optimized Search
+            </a>
+
+
+            <a th:href="@{/bookings}">
+                My Bookings
+            </a>
+
+
+            <a th:href="@{/calendar}">
+                Calendar
+            </a>
+
+
+            <a th:href="@{/notifications}">
+                Notifications
+            </a>
+
+
+            <a th:href="@{/profile}">
+                Profile
+            </a>
+
+
+
+            <!-- SIGN OUT -->
+            <form th:action="@{/logout}"
+                  method="post"
+                  class="topbar-logout-form">
+
+                <button type="submit"
+                        class="topbar-signout">
+
+                    Sign out
+
+                </button>
+
+            </form>
+
+
+        </div>
+
+
+    </div>
+
+</nav>
+
+
+
+<!-- =========================================================
+     SHARED ALERTS
+     ========================================================= -->
+<div th:fragment="alerts"
+     class="alerts-wrapper">
+
+
+    <!-- SUCCESS -->
+    <div th:if="${success}"
+         class="alert success">
+
+        <span class="alert-icon">
+            ✓
+        </span>
+
+        <span th:text="${success}">
+            Operation completed successfully.
+        </span>
+
+    </div>
+
+
+
+    <!-- ERROR -->
+    <div th:if="${error}"
+         class="alert error">
+
+        <span class="alert-icon">
+            !
+        </span>
+
+        <span th:text="${error}">
+            Something went wrong.
+        </span>
+
+    </div>
+
+
+</div>
+
+
+</body>
+
+</html>
