@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments :: head('Edit Profile')}"></head>
+
+<body>
+
+<!-- Shared Navigation -->
+<nav th:replace="~{fragments :: nav}"></nav>
+
+
+<main class="container edit-profile-page">
+
+    <!-- Alerts -->
+    <div th:replace="~{fragments :: alerts}"></div>
+
+
+    <!-- =====================================================
+         PAGE HEADER
+         ===================================================== -->
+    <section class="page-head edit-profile-page-head">
+
+        <div>
+
+            <p class="eyebrow">
+                ACCOUNT SETTINGS
+            </p>
+
+            <h1>
+                Edit Profile
+            </h1>
+
+            <p>
+                Update your personal and academic information.
+            </p>
+
+        </div>
+
+
+        <a th:href="@{/profile}"
+           class="edit-back-btn">
+
+            ← Back to Profile
+
+        </a>
+
+    </section>
+
+
+
+    <!-- =====================================================
+         USER SUMMARY
+         ===================================================== -->
+    <section class="panel edit-profile-summary">
+
+        <div class="edit-profile-avatar">
+
+            <span th:text="${#strings.substring(user.name,0,1)}">
+                A
+            </span>
+
+        </div>
+
+
+        <div class="edit-profile-identity">
+
+            <h2 th:text="${user.name}">
+                Ana Singh
+            </h2>
+
+            <div class="edit-profile-meta">
+
+                <span class="edit-profile-role"
+                      th:text="${user.role}">
+                    STUDENT
+                </span>
+
+                <span th:text="${user.userCode}">
+                    S12345678
+                </span>
+
+            </div>
+
+            <p th:text="${user.email}">
+                student1@usp.ac.fj
+            </p>
+
+        </div>
+
+
+        <div class="edit-profile-account-state">
+
+            <span class="edit-status-dot"></span>
+
+            <span th:text="${user.active ? 'Active Account' : 'Inactive Account'}">
+                Active Account
+            </span>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =====================================================
+         PERSONAL INFORMATION
+         ===================================================== -->
+    <section class="panel edit-profile-form-panel">
+
+
+        <div class="edit-section-heading">
+
+            <div>
+
+                <p class="edit-section-eyebrow">
+                    PROFILE DETAILS
+                </p>
+
+                <h2>
+                    Personal Information
+                </h2>
+
+                <p>
+                    Manage the information associated with your SpaceHub account.
+                </p>
+
+            </div>
+
+        </div>
+
+
+
+        <form th:action="@{/profile/update}"
+              method="post"
+              class="edit-profile-form">
+
+
+            <!-- =================================================
+                 FULL NAME
+                 ================================================= -->
+            <div class="edit-form-row">
+
+                <div class="edit-form-label">
+
+                    <label for="name">
+                        Full Name
+                    </label>
+
+                    <span>
+                        Name displayed throughout SpaceHub
+                    </span>
+
+                </div>
+
+
+                <div class="edit-form-control">
+
+                    <input id="name"
+                           name="name"
+                           type="text"
+                           th:value="${user.name}"
+                           placeholder="Enter your full name"
+                           required>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- =================================================
+                 STUDENT / STAFF ID
+                 ================================================= -->
+            <div class="edit-form-row">
+
+                <div class="edit-form-label">
+
+                    <label for="userCode">
+                        Student / Staff ID
+                    </label>
+
+                    <span>
+                        Your assigned USP identifier
+                    </span>
+
+                </div>
+
+
+                <div class="edit-form-control">
+
+                    <input id="userCode"
+                           type="text"
+                           th:value="${user.userCode}"
+                           readonly
+                           class="edit-readonly">
+
+                </div>
+
+            </div>
+
+
+
+            <!-- =================================================
+                 EMAIL
+                 ================================================= -->
+            <div class="edit-form-row">
+
+                <div class="edit-form-label">
+
+                    <label for="email">
+                        Email Address
+                    </label>
+
+                    <span>
+                        Your registered USP account email
+                    </span>
+
+                </div>
+
+
+                <div class="edit-form-control">
+
+                    <input id="email"
+                           type="email"
+                           th:value="${user.email}"
+                           readonly
+                           class="edit-readonly">
+
+                </div>
+
+            </div>
+
+
+
+            <!-- =================================================
+                 PROGRAMME / DEPARTMENT
+                 ================================================= -->
+            <div class="edit-form-row">
+
+                <div class="edit-form-label">
+
+                    <label for="department">
+                        Programme / Department
+                    </label>
+
+                    <span>
+                        Your programme or academic department
+                    </span>
+
+                </div>
+
+
+                <div class="edit-form-control">
+
+                    <input id="department"
+                           name="department"
+                           type="text"
+                           th:value="${user.department}"
+                           placeholder="Enter programme or department">
+
+                </div>
+
+            </div>
+
+
+
+            <!-- =================================================
+                 ROLE
+                 ================================================= -->
+            <div class="edit-form-row">
+
+                <div class="edit-form-label">
+
+                    <label for="role">
+                        Role
+                    </label>
+
+                    <span>
+                        Your SpaceHub access level
+                    </span>
+
+                </div>
+
+
+                <div class="edit-form-control">
+
+                    <input id="role"
+                           type="text"
+                           th:value="${user.role}"
+                           readonly
+                           class="edit-readonly">
+
+                </div>
+
+            </div>
+
+
+
+            <!-- =================================================
+                 ACCOUNT STATUS
+                 ================================================= -->
+            <div class="edit-form-row">
+
+                <div class="edit-form-label">
+
+                    <label>
+                        Account Status
+                    </label>
+
+                    <span>
+                        Current status of your SpaceHub account
+                    </span>
+
+                </div>
+
+
+                <div class="edit-form-control">
+
+                    <div class="edit-account-status"
+                         th:classappend="${user.active ? ' active' : ' inactive'}">
+
+                        <span class="edit-status-dot"></span>
+
+                        <strong th:text="${user.active ? 'Active Account' : 'Inactive Account'}">
+                            Active Account
+                        </strong>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- =================================================
+                 INFORMATION NOTE
+                 ================================================= -->
+            <div class="edit-profile-note">
+
+                <div class="edit-note-symbol">
+                    i
+                </div>
+
+                <div>
+
+                    <strong>
+                        Account information
+                    </strong>
+
+                    <p>
+                        Email address, Student/Staff ID and role cannot be changed here.
+                        Contact the system administrator if these details are incorrect.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- =================================================
+                 ACTION BUTTONS
+                 ================================================= -->
+            <div class="edit-profile-actions">
+
+                <a th:href="@{/profile}"
+                   class="edit-cancel-btn">
+
+                    Cancel
+
+                </a>
+
+
+                <button type="submit"
+                        class="edit-save-btn">
+
+                    Save Changes
+
+                </button>
+
+            </div>
+
+
+        </form>
+
+    </section>
+
+
+
+    <!-- =====================================================
+         ACCOUNT SECURITY
+         ===================================================== -->
+    <section class="panel edit-security-panel">
+
+        <div>
+
+            <p class="edit-section-eyebrow">
+                SECURITY
+            </p>
+
+            <h2>
+                Account Security
+            </h2>
+
+            <p>
+                Your login credentials and protected account information are secured.
+            </p>
+
+        </div>
+
+
+        <div class="edit-security-badge">
+
+            <span class="edit-security-dot"></span>
+
+            Secured account
+
+        </div>
+
+    </section>
+
+
+</main>
+
+</body>
+</html>
