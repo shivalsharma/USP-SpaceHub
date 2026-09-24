@@ -1,48 +1,405 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments :: head('Users')}"></head>
+
+<head th:replace="~{fragments :: head('User Management')}"></head>
+
 <body>
+
 <nav th:replace="~{fragments :: nav}"></nav>
-<main class="container">
+
+<main class="container user-management-page">
+
     <div th:replace="~{fragments :: alerts}"></div>
-    <section class="page-head">
+
+    <!-- PAGE HEADER -->
+    <section class="page-head user-management-head">
+
         <div>
-            <p class="eyebrow">RBAC & ACCOUNTS</p>
-            <h1>User management</h1>
+            <p class="eyebrow">
+                RBAC & ACCOUNT ADMINISTRATION
+            </p>
+
+            <h1>
+                User Management
+            </h1>
+
+            <p>
+                Manage system accounts, roles, departments,
+                booking permissions and account access.
+            </p>
         </div>
-        <a class="btn primary" th:href="@{/admin/users/new}">Add user</a>
+
+        <a class="btn primary add-user-btn"
+           th:href="@{/admin/users/new}">
+
+            + Add User
+
+        </a>
+
     </section>
-    <section class="panel table-wrap">
-        <table>
-            <thead>
-            <tr>
-                <th>Code</th>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Role</th>
-                <th>Department</th>
-                <th>Status</th>
-                <th>Actions</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr th:each="u:${users}">
-                <td th:text="${u.userCode}"></td>
-                <td th:text="${u.name}"></td>
-                <td th:text="${u.email}"></td>
-                <td th:text="${u.role}"></td>
-                <td th:text="${u.department}"></td>
-                <td><span class="status" th:classappend="${u.active}?' APPROVED':' REJECTED'" th:text="${u.active}?'ACTIVE':'DISABLED'"></span></td>
-                <td class="buttons">
-                    <a class="btn ghost small-btn" th:href="@{'/admin/users/'+${u.id}+'/edit'}">Edit / reset password</a>
-                    <form th:action="@{'/admin/users/'+${u.id}+'/toggle'}" method="post">
-                        <button class="btn ghost small-btn" th:text="${u.active}?'Disable':'Reactivate'"></button>
-                    </form>
-                </td>
-            </tr>
-            </tbody>
-        </table>
+
+
+    <!-- SUMMARY CARDS -->
+    <section class="user-stats">
+
+        <article class="user-stat-card">
+
+            <span class="user-stat-label">
+                Total Users
+            </span>
+
+            <strong th:text="${totalUsers}">
+                0
+            </strong>
+
+            <small>
+                All registered accounts
+            </small>
+
+        </article>
+
+
+        <article class="user-stat-card">
+
+            <span class="user-stat-label">
+                Students
+            </span>
+
+            <strong th:text="${studentCount}">
+                0
+            </strong>
+
+            <small>
+                Student accounts
+            </small>
+
+        </article>
+
+
+        <article class="user-stat-card">
+
+            <span class="user-stat-label">
+                Lecturers
+            </span>
+
+            <strong th:text="${lecturerCount}">
+                0
+            </strong>
+
+            <small>
+                Lecturer accounts
+            </small>
+
+        </article>
+
+
+        <article class="user-stat-card">
+
+            <span class="user-stat-label">
+                Administrators
+            </span>
+
+            <strong th:text="${adminCount}">
+                0
+            </strong>
+
+            <small>
+                Admin and IT Admin
+            </small>
+
+        </article>
+
     </section>
+
+
+    <!-- SEARCH / FILTERS -->
+    <section class="panel user-filter-panel">
+
+        <form th:action="@{/admin/users}"
+              method="get"
+              class="user-filter-form">
+
+            <!-- SEARCH -->
+            <div class="user-search-box">
+
+                <span class="user-search-icon">
+                    ⌕
+                </span>
+
+                <input
+                        type="search"
+                        name="search"
+                        th:value="${search}"
+                        placeholder="Search by name, email or user ID">
+
+            </div>
+
+
+            <!-- ROLE FILTER -->
+            <select name="role"
+                    class="user-filter-select">
+
+                <option value="">
+                    All Roles
+                </option>
+
+                <option
+                        th:each="r : ${roles}"
+                        th:value="${r}"
+                        th:selected="${selectedRole == r}"
+                        th:text="${#strings.replace(r.name(), '_', ' ')}">
+                </option>
+
+            </select>
+
+
+            <!-- STATUS FILTER -->
+            <select name="status"
+                    class="user-filter-select">
+
+                <option value="">
+                    All Statuses
+                </option>
+
+                <option value="ACTIVE"
+                        th:selected="${selectedStatus == 'ACTIVE'}">
+                    Active
+                </option>
+
+                <option value="DISABLED"
+                        th:selected="${selectedStatus == 'DISABLED'}">
+                    Disabled
+                </option>
+
+            </select>
+
+
+            <button type="submit"
+                    class="btn primary">
+
+                Filter
+
+            </button>
+
+
+            <a class="btn ghost"
+               th:href="@{/admin/users}">
+
+                Clear
+
+            </a>
+
+        </form>
+
+    </section>
+
+
+    <!-- USER TABLE -->
+    <section class="panel user-table-panel">
+
+        <div class="user-table-heading">
+
+            <div>
+                <h2>
+                    User Accounts
+                </h2>
+
+                <p>
+                    Showing
+                    <strong th:text="${#lists.size(users)}">
+                        0
+                    </strong>
+                    account(s)
+                </p>
+            </div>
+
+        </div>
+
+
+        <div class="table-wrap">
+
+            <table class="user-table">
+
+                <thead>
+
+                <tr>
+                    <th>User ID</th>
+                    <th>User</th>
+                    <th>Role</th>
+                    <th>Department</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                <tr th:each="u : ${users}">
+
+                    <!-- USER ID -->
+                    <td>
+
+                        <span class="user-code"
+                              th:text="${u.userCode}">
+                        </span>
+
+                    </td>
+
+
+                    <!-- NAME & EMAIL -->
+                    <td>
+
+                        <div class="user-identity">
+
+                            <div class="user-avatar"
+                                 th:text="${#strings.substring(u.name,0,1)}">
+                                U
+                            </div>
+
+                            <div>
+
+                                <strong th:text="${u.name}">
+                                    User Name
+                                </strong>
+
+                                <small th:text="${u.email}">
+                                    email@usp.ac.fj
+                                </small>
+
+                            </div>
+
+                        </div>
+
+                    </td>
+
+
+                    <!-- ROLE -->
+                    <td>
+
+                        <span
+                                class="role-badge"
+                                th:classappend="${' role-' + #strings.toLowerCase(u.role.name())}"
+                                th:text="${#strings.replace(u.role.name(), '_', ' ')}">
+
+                            STUDENT
+
+                        </span>
+
+                    </td>
+
+
+                    <!-- DEPARTMENT -->
+                    <td>
+
+                        <span th:text="${u.department != null && !u.department.isBlank()
+                                ? #strings.replace(u.department, '_', ' ')
+                                : 'Unassigned'}">
+
+                            SITEMP
+
+                        </span>
+
+                    </td>
+
+
+                    <!-- STATUS -->
+                    <td>
+
+                        <span
+                                class="account-status"
+                                th:classappend="${u.active ? ' status-active' : ' status-disabled'}">
+
+                            <span class="status-dot"></span>
+
+                            <span th:text="${u.active ? 'Active' : 'Disabled'}">
+                                Active
+                            </span>
+
+                        </span>
+
+                    </td>
+
+
+                    <!-- ACTIONS -->
+                    <td>
+
+                        <div class="user-actions">
+
+                            <a
+                                    class="btn ghost small-btn"
+                                    th:href="@{'/admin/users/' + ${u.id} + '/edit'}">
+
+                                Edit
+
+                            </a>
+
+
+                            <form
+                                    th:action="@{'/admin/users/' + ${u.id} + '/toggle'}"
+                                    method="post"
+                                    th:if="${!#strings.equalsIgnoreCase(u.email, currentUserEmail)}"
+                                    th:attr="onsubmit=${u.active}
+                                            ? 'return confirm(\'Disable this user account?\');'
+                                            : 'return confirm(\'Reactivate this user account?\');'">
+
+                                <button
+                                        type="submit"
+                                        class="btn small-btn"
+                                        th:classappend="${u.active ? ' danger-outline' : ' success-outline'}"
+                                        th:text="${u.active ? 'Disable' : 'Reactivate'}">
+
+                                    Disable
+
+                                </button>
+
+                            </form>
+
+
+                            <span
+                                    th:if="${#strings.equalsIgnoreCase(u.email, currentUserEmail)}"
+                                    class="current-user-badge">
+
+                                Your account
+
+                            </span>
+
+                        </div>
+
+                    </td>
+
+                </tr>
+
+
+                <!-- NO RESULTS -->
+                <tr th:if="${#lists.isEmpty(users)}">
+
+                    <td colspan="6"
+                        class="empty-user-state">
+
+                        <strong>
+                            No users found
+                        </strong>
+
+                        <span>
+                            Try changing your search or filters.
+                        </span>
+
+                    </td>
+
+                </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
 </main>
+
 </body>
+
 </html>

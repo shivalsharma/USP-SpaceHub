@@ -1,34 +1,607 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments :: head('User form')}"></head>
+
+<head th:replace="~{fragments :: head('User Account')}"></head>
+
 <body>
+
 <nav th:replace="~{fragments :: nav}"></nav>
-<main class="container narrow">
-    <section class="page-head">
+
+<main class="container admin-user-form-page">
+
+    <!-- =====================================================
+         PAGE HEADER
+         ===================================================== -->
+    <section class="page-head admin-user-form-head">
+
         <div>
-            <p class="eyebrow">ACCOUNT</p>
-            <h1 th:text="${form.id==null}?'Add user':'Edit user'"></h1>
+            <p class="eyebrow">
+                USER MANAGEMENT
+            </p>
+
+            <h1 th:text="${form.id == null ? 'Add User' : 'Edit User'}">
+                Add User
+            </h1>
+
+            <p th:text="${form.id == null
+                    ? 'Create a new SpaceHub account and assign the appropriate access level.'
+                    : 'Update this user’s account information, role and booking permissions.'}">
+                Manage user account details.
+            </p>
         </div>
+
+        <a class="btn ghost"
+           th:href="@{/admin/users}">
+            ← Back to Users
+        </a>
+
     </section>
-    <form th:action="@{/admin/users/save}" th:object="${form}" method="post" class="panel form-grid">
-        <input type="hidden" th:field="*{id}">
-        <label>User / staff ID<input th:field="*{userCode}" required></label>
-        <label>Name<input th:field="*{name}" required></label>
-        <label>Email<input type="email" th:field="*{email}" required></label>
-        <label>Role<select th:field="*{role}"><option th:each="r:${roles}" th:value="${r}" th:text="${r}"></option></select></label>
-        <label>Department<select th:field="*{department}"><option value="">Unassigned</option><option th:each="d:${departments}" th:value="${d}" th:text="${#strings.replace(d,'_',' ')}"></option></select></label>
-        <label>Daily booking override<input type="number" min="1" th:field="*{maxDailyBookings}" placeholder="Use system default"></label>
-        <label>Weekly booking override<input type="number" min="1" th:field="*{maxWeeklyBookings}" placeholder="Use system default"></label>
-        <label>Password <small th:text="${form.id==null}?'Required, 8+ characters':'Leave blank to keep current; enter a value to reset'"></small><input type="password" th:field="*{password}"></label>
-        <label class="check option-check"><input type="checkbox" th:field="*{active}"> Active account</label>
-        <div class="span-2 buttons">
-            <button class="btn primary">Save user</button>
-            <a class="btn ghost" th:href="@{/admin/users}">Cancel</a>
+
+
+    <!-- =====================================================
+         USER FORM
+         ===================================================== -->
+    <form th:action="@{/admin/users/save}"
+          th:object="${form}"
+          method="post"
+          class="admin-user-form">
+
+        <!-- DATABASE ID -->
+        <input type="hidden"
+               th:field="*{id}">
+
+
+        <!-- =================================================
+             VALIDATION ERRORS
+             ================================================= -->
+        <div class="admin-form-error-summary"
+             th:if="${#fields.hasAnyErrors()}">
+
+            <strong>
+                Please check the information below.
+            </strong>
+
+            <p th:each="e : ${#fields.allErrors()}"
+               th:text="${e}">
+                Validation error
+            </p>
+
         </div>
-        <div class="span-2 validation" th:if="${#fields.hasAnyErrors()}">
-            <p th:each="e:${#fields.allErrors()}" th:text="${e}"></p>
+
+
+        <div class="admin-user-form-grid">
+
+
+            <!-- =================================================
+                 SECTION 01 - ACCOUNT DETAILS
+                 ================================================= -->
+            <section class="panel admin-user-form-section">
+
+                <div class="admin-user-section-head">
+
+                    <div class="admin-user-section-number">
+                        01
+                    </div>
+
+                    <div>
+                        <h2>Account Details</h2>
+
+                        <p>
+                            Basic information used to identify the user.
+                        </p>
+                    </div>
+
+                </div>
+
+
+                <div class="admin-form-fields">
+
+                    <!-- USER ID -->
+                    <label class="admin-form-field">
+
+                        <span>
+                            User / Staff ID
+                        </span>
+
+                        <input type="text"
+                               th:field="*{userCode}"
+                               placeholder="e.g. S12345678"
+                               autocomplete="off"
+                               required>
+
+                        <small class="field-help">
+                            Student ID, staff ID or administrator ID.
+                        </small>
+
+                        <small class="admin-field-error"
+                               th:if="${#fields.hasErrors('userCode')}"
+                               th:errors="*{userCode}">
+                        </small>
+
+                    </label>
+
+
+                    <!-- FULL NAME -->
+                    <label class="admin-form-field">
+
+                        <span>
+                            Full Name
+                        </span>
+
+                        <input type="text"
+                               th:field="*{name}"
+                               placeholder="Enter full name"
+                               autocomplete="name"
+                               required>
+
+                        <small class="field-help">
+                            The name displayed throughout SpaceHub.
+                        </small>
+
+                        <small class="admin-field-error"
+                               th:if="${#fields.hasErrors('name')}"
+                               th:errors="*{name}">
+                        </small>
+
+                    </label>
+
+
+                    <!-- EMAIL -->
+                    <label class="admin-form-field span-2">
+
+                        <span>
+                            USP Email Address
+                        </span>
+
+                        <input type="email"
+                               th:field="*{email}"
+                               placeholder="name@usp.ac.fj"
+                               autocomplete="email"
+                               required>
+
+                        <small class="field-help">
+                            This email will be used when signing in.
+                        </small>
+
+                        <small class="admin-field-error"
+                               th:if="${#fields.hasErrors('email')}"
+                               th:errors="*{email}">
+                        </small>
+
+                    </label>
+
+                </div>
+
+            </section>
+
+
+            <!-- =================================================
+                 SECTION 02 - ROLE & DEPARTMENT
+                 ================================================= -->
+            <section class="panel admin-user-form-section">
+
+                <div class="admin-user-section-head">
+
+                    <div class="admin-user-section-number">
+                        02
+                    </div>
+
+                    <div>
+                        <h2>
+                            Role & Department
+                        </h2>
+
+                        <p>
+                            Control the user's responsibilities and access level.
+                        </p>
+                    </div>
+
+                </div>
+
+
+                <div class="admin-form-fields">
+
+                    <!-- ROLE -->
+                    <label class="admin-form-field">
+
+                        <span>
+                            System Role
+                        </span>
+
+                        <select th:field="*{role}"
+                                required>
+
+                            <option value="">
+                                Select a role
+                            </option>
+
+                            <option th:each="r : ${roles}"
+                                    th:value="${r}"
+                                    th:text="${#strings.replace(r.name(), '_', ' ')}">
+                            </option>
+
+                        </select>
+
+                        <small class="field-help">
+                            Determines what features and pages the user can access.
+                        </small>
+
+                        <small class="admin-field-error"
+                               th:if="${#fields.hasErrors('role')}"
+                               th:errors="*{role}">
+                        </small>
+
+                    </label>
+
+
+                    <!-- DEPARTMENT -->
+                    <label class="admin-form-field">
+
+                        <span>
+                            Department
+                        </span>
+
+                        <select th:field="*{department}">
+
+                            <option value="">
+                                Unassigned
+                            </option>
+
+                            <option th:each="d : ${departments}"
+                                    th:value="${d}"
+                                    th:text="${#strings.replace(d, '_', ' ')}">
+                            </option>
+
+                        </select>
+
+                        <small class="field-help">
+                            Department or school associated with this user.
+                        </small>
+
+                    </label>
+
+                </div>
+
+
+                <!-- RBAC INFO -->
+                <div class="role-information-box">
+
+                    <strong>
+                        Role-Based Access
+                    </strong>
+
+                    <p>
+                        Roles determine what users can view and manage.
+                        Students and lecturers receive standard booking access,
+                        while administrative roles receive additional
+                        management permissions.
+                    </p>
+
+                </div>
+
+            </section>
+
+
+            <!-- =================================================
+                 SECTION 03 - BOOKING PERMISSIONS
+                 ================================================= -->
+            <section class="panel admin-user-form-section">
+
+                <div class="admin-user-section-head">
+
+                    <div class="admin-user-section-number">
+                        03
+                    </div>
+
+                    <div>
+                        <h2>
+                            Booking Permissions
+                        </h2>
+
+                        <p>
+                            Optional limits for the number of bookings this user can make.
+                        </p>
+                    </div>
+
+                </div>
+
+
+                <div class="admin-form-fields">
+
+                    <!-- DAILY BOOKING LIMIT -->
+                    <label class="admin-form-field">
+
+                        <span>
+                            Daily Booking Limit
+                        </span>
+
+                        <input type="number"
+                               min="1"
+                               th:field="*{maxDailyBookings}"
+                               placeholder="Use system default">
+
+                        <small class="field-help">
+                            Leave blank to use the normal system limit.
+                        </small>
+
+                    </label>
+
+
+                    <!-- WEEKLY BOOKING LIMIT -->
+                    <label class="admin-form-field">
+
+                        <span>
+                            Weekly Booking Limit
+                        </span>
+
+                        <input type="number"
+                               min="1"
+                               th:field="*{maxWeeklyBookings}"
+                               placeholder="Use system default">
+
+                        <small class="field-help">
+                            Leave blank to use the normal system limit.
+                        </small>
+
+                    </label>
+
+                </div>
+
+            </section>
+
+
+            <!-- =================================================
+                 SECTION 04 - SECURITY & STATUS
+                 ================================================= -->
+            <section class="panel admin-user-form-section">
+
+                <div class="admin-user-section-head">
+
+                    <div class="admin-user-section-number">
+                        04
+                    </div>
+
+                    <div>
+                        <h2>
+                            Security & Status
+                        </h2>
+
+                        <p>
+                            Manage the account password and login availability.
+                        </p>
+                    </div>
+
+                </div>
+
+
+                <div class="admin-form-fields">
+
+                    <!-- PASSWORD -->
+                    <label class="admin-form-field span-2">
+
+                        <span th:text="${form.id == null
+                                ? 'Temporary Password'
+                                : 'Reset Password'}">
+                            Temporary Password
+                        </span>
+
+
+                        <div class="admin-password-wrap">
+
+                            <input id="adminUserPassword"
+                                   type="password"
+                                   th:field="*{password}"
+                                   minlength="8"
+                                   placeholder="Minimum 8 characters"
+                                   autocomplete="new-password">
+
+                            <button type="button"
+                                    class="admin-password-toggle"
+                                    onclick="toggleAdminUserPassword()">
+                                Show
+                            </button>
+
+                        </div>
+
+
+                        <small class="field-help"
+                               th:text="${form.id == null
+                                       ? 'A password of at least 8 characters is required for a new account.'
+                                       : 'Leave this blank to keep the user’s current password.'}">
+                            Password information
+                        </small>
+
+
+                        <small class="admin-field-error"
+                               th:if="${#fields.hasErrors('password')}"
+                               th:errors="*{password}">
+                        </small>
+
+                    </label>
+
+
+                    <!-- =================================================
+                         ACTIVE ACCOUNT
+                         ================================================= -->
+                    <div class="admin-account-status-box span-2">
+
+                        <div>
+
+                            <strong>
+                                Active Account
+                            </strong>
+
+                            <p>
+                                Active users can sign in and use the features
+                                permitted by their assigned role.
+                            </p>
+
+                        </div>
+
+
+                        <!--
+                            This hidden input is what Spring receives.
+
+                            true  = active
+                            false = disabled
+                        -->
+                        <input type="hidden"
+                               name="active"
+                               id="activeUserField"
+                               th:value="${form.active}">
+
+
+                        <!-- REAL CLICKABLE BUTTON -->
+                        <button type="button"
+                                id="activeUserButton"
+                                class="active-toggle-button"
+                                th:classappend="${form.active} ? ' active-toggle-on' : ''"
+                                th:attr="aria-pressed=${form.active}"
+                                onclick="toggleActiveUser()">
+
+                            <span class="active-toggle-circle"></span>
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </section>
+
         </div>
+
+
+        <!-- =====================================================
+             FORM ACTIONS
+             ===================================================== -->
+        <div class="admin-user-form-actions">
+
+            <a class="btn ghost"
+               th:href="@{/admin/users}">
+                Cancel
+            </a>
+
+
+            <button type="submit"
+                    class="btn primary admin-save-user-btn"
+                    th:text="${form.id == null
+                            ? 'Create User'
+                            : 'Save Changes'}">
+
+                Create User
+
+            </button>
+
+        </div>
+
     </form>
+
 </main>
+
+
+<!-- =========================================================
+     JAVASCRIPT
+     ========================================================= -->
+<script>
+
+    /*
+     * PASSWORD SHOW / HIDE
+     */
+    function toggleAdminUserPassword() {
+
+        const input =
+            document.getElementById("adminUserPassword");
+
+        const button =
+            document.querySelector(".admin-password-toggle");
+
+
+        if (input.type === "password") {
+
+            input.type = "text";
+
+            button.textContent = "Hide";
+
+        } else {
+
+            input.type = "password";
+
+            button.textContent = "Show";
+
+        }
+
+    }
+
+
+    /*
+     * ACTIVE ACCOUNT BUTTON
+     *
+     * Changes the hidden field between:
+     *
+     * true
+     * false
+     *
+     * It also changes the appearance
+     * of the button.
+     */
+    function toggleActiveUser() {
+
+        const field =
+            document.getElementById("activeUserField");
+
+        const button =
+            document.getElementById("activeUserButton");
+
+
+        const currentlyActive =
+            field.value === "true";
+
+
+        const newValue =
+            !currentlyActive;
+
+
+        /*
+         * Update value sent to Spring
+         */
+        field.value =
+            newValue
+                ? "true"
+                : "false";
+
+
+        /*
+         * Accessibility
+         */
+        button.setAttribute(
+            "aria-pressed",
+            newValue
+        );
+
+
+        /*
+         * Change visual appearance
+         */
+        if (newValue) {
+
+            button.classList.add(
+                "active-toggle-on"
+            );
+
+        } else {
+
+            button.classList.remove(
+                "active-toggle-on"
+            );
+
+        }
+
+    }
+
+</script>
+
+
 </body>
+
 </html>

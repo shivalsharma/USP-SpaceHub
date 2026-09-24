@@ -1,6 +1,8 @@
 <!DOCTYPE html>
+
 <html lang="en"
-      xmlns:th="http://www.thymeleaf.org">
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 
 
 <!-- =========================================================
@@ -73,38 +75,159 @@
         <div class="topbar-links">
 
 
+            <!-- =================================================
+                 ALL LOGGED-IN USERS
+                 ================================================= -->
             <a th:href="@{/dashboard}">
                 Dashboard
             </a>
 
 
+
+            <!-- =================================================
+                 USER MANAGEMENT
+
+                 ADMIN     = YES
+                 IT_ADMIN  = YES
+                 LECTURER  = NO
+                 STUDENT   = NO
+                 ================================================= -->
+            <a sec:authorize="hasAnyRole('ADMIN','IT_ADMIN')"
+               th:href="@{/admin/users}">
+
+                User Management
+
+            </a>
+
+
+
+            <!-- =================================================
+                 ROOM MANAGEMENT
+
+                 ADMIN     = YES
+                 IT_ADMIN  = YES
+                 LECTURER  = NO
+                 STUDENT   = NO
+                 ================================================= -->
+            <a sec:authorize="hasAnyRole('ADMIN','IT_ADMIN')"
+               th:href="@{/admin/rooms}">
+
+                Rooms
+
+            </a>
+
+
+
+            <!-- =================================================
+                 APPROVALS
+
+                 ADMIN ONLY
+                 ================================================= -->
+            <a sec:authorize="hasRole('ADMIN')"
+               th:href="@{/admin/approvals}">
+
+                Approvals
+
+            </a>
+
+
+
+            <!-- =================================================
+                 COURSE MANAGEMENT
+
+                 ADMIN ONLY
+                 ================================================= -->
+            <a sec:authorize="hasRole('ADMIN')"
+               th:href="@{/admin/courses}">
+
+                Courses
+
+            </a>
+
+
+
+            <!-- =================================================
+                 REPORTS
+
+                 ADMIN ONLY
+                 ================================================= -->
+            <a sec:authorize="hasRole('ADMIN')"
+               th:href="@{/admin/reports}">
+
+                Reports
+
+            </a>
+
+
+
+            <!-- =================================================
+                 OPTIMIZED SEARCH
+
+                 ALL LOGGED-IN USERS
+                 ================================================= -->
             <a th:href="@{/search}">
+
                 Optimized Search
+
             </a>
 
 
+
+            <!-- =================================================
+                 MY BOOKINGS
+
+                 ALL LOGGED-IN USERS
+                 ================================================= -->
             <a th:href="@{/bookings}">
+
                 My Bookings
+
             </a>
 
 
+
+            <!-- =================================================
+                 CALENDAR
+
+                 ALL LOGGED-IN USERS
+                 ================================================= -->
             <a th:href="@{/calendar}">
+
                 Calendar
+
             </a>
 
 
+
+            <!-- =================================================
+                 NOTIFICATIONS
+
+                 ALL LOGGED-IN USERS
+                 ================================================= -->
             <a th:href="@{/notifications}">
+
                 Notifications
+
             </a>
 
 
+
+            <!-- =================================================
+                 PROFILE
+
+                 ALL LOGGED-IN USERS
+                 ================================================= -->
             <a th:href="@{/profile}">
+
                 Profile
+
             </a>
 
 
 
-            <!-- SIGN OUT -->
+            <!-- =================================================
+                 SIGN OUT
+                 ================================================= -->
             <form th:action="@{/logout}"
                   method="post"
                   class="topbar-logout-form">
@@ -135,7 +258,9 @@
      class="alerts-wrapper">
 
 
-    <!-- SUCCESS -->
+    <!-- =====================================================
+         SUCCESS MESSAGE
+         ===================================================== -->
     <div th:if="${success}"
          class="alert success">
 
@@ -151,7 +276,9 @@
 
 
 
-    <!-- ERROR -->
+    <!-- =====================================================
+         ERROR MESSAGE
+         ===================================================== -->
     <div th:if="${error}"
          class="alert error">
 

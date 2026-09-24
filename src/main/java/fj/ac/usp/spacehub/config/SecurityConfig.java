@@ -19,22 +19,32 @@ import org.springframework.security.provisioning.JdbcUserDetailsManager;
 
 import org.springframework.security.web.SecurityFilterChain;
 
+
 @Configuration
 public class SecurityConfig {
 
-    /*
-     * Read users directly from the SpaceHub MySQL users table.
-     *
-     * Login username = email
-     * Password = password_hash
-     * Enabled/disabled = active
-     */
+
+    /* =========================================================
+       USER DETAILS SERVICE
+       =========================================================
+       Reads login information directly from the MySQL users table.
+
+       Username = email
+       Password = password_hash
+       Enabled  = active
+       ========================================================= */
     @Bean
-    public UserDetailsService userDetailsService(DataSource dataSource) {
+    public UserDetailsService userDetailsService(
+            DataSource dataSource) {
+
 
         JdbcUserDetailsManager manager =
                 new JdbcUserDetailsManager(dataSource);
 
+
+        /*
+         * Find the user's login details.
+         */
         manager.setUsersByUsernameQuery(
                 """
                 SELECT
@@ -46,6 +56,17 @@ public class SecurityConfig {
                 """
         );
 
+
+        /*
+         * Find the user's role.
+         *
+         * Example:
+         *
+         * ADMIN      -> ROLE_ADMIN
+         * IT_ADMIN   -> ROLE_IT_ADMIN
+         * LECTURER   -> ROLE_LECTURER
+         * STUDENT    -> ROLE_STUDENT
+         */
         manager.setAuthoritiesByUsernameQuery(
                 """
                 SELECT
@@ -56,100 +77,336 @@ public class SecurityConfig {
                 """
         );
 
+
         return manager;
     }
 
 
-    /*
-     * Your demo-account passwords are stored as BCrypt hashes.
-     */
+
+    /* =========================================================
+       PASSWORD ENCODER
+       ========================================================= */
     @Bean
     public PasswordEncoder passwordEncoder() {
+
         return new BCryptPasswordEncoder();
     }
 
 
-    /*
-     * Connect the database UserDetailsService with BCrypt.
-     */
+
+    /* =========================================================
+       AUTHENTICATION PROVIDER
+       ========================================================= */
     @Bean
     public AuthenticationProvider authenticationProvider(
             UserDetailsService userDetailsService,
             PasswordEncoder passwordEncoder) {
 
-        DaoAuthenticationProvider provider =
-                new DaoAuthenticationProvider(userDetailsService);
 
-        provider.setPasswordEncoder(passwordEncoder);
+        DaoAuthenticationProvider provider =
+                new DaoAuthenticationProvider(
+                        userDetailsService
+                );
+
+
+        provider.setPasswordEncoder(
+                passwordEncoder
+        );
+
 
         return provider;
     }
 
 
-    /*
-     * Main Spring Security configuration.
-     */
+
+    /* =========================================================
+       SECURITY FILTER CHAIN / RBAC
+       ========================================================= */
     @Bean
     public SecurityFilterChain securityFilterChain(
             HttpSecurity http,
             AuthenticationProvider authenticationProvider)
             throws Exception {
 
+
         http
-            .authenticationProvider(authenticationProvider)
 
-            .authorizeHttpRequests(auth -> auth
-
-                // Login page + files needed before login
-                .requestMatchers(
-                    "/login",
-                    "/css/**",
-                    "/images/**",
-                    "/js/**",
-                    "/favicon.ico",
-                    "/error"
+                /*
+                 * Use our database authentication provider.
+                 */
+                .authenticationProvider(
+                        authenticationProvider
                 )
-                .permitAll()
 
-                // Administrator pages
-                .requestMatchers("/admin/**")
-                .hasAnyRole("ADMIN", "IT_ADMIN")
 
-                // Every other page requires login
-                .anyRequest()
-                .authenticated()
-            )
+                /* =================================================
+                   ROLE-BASED ACCESS CONTROL
+                   ================================================= */
+                .authorizeHttpRequests(auth -> auth
 
-            .formLogin(form -> form
 
-                // Your custom login page
-                .loginPage("/login")
+                        /* =========================================
+                           PUBLIC RESOURCES
+                           =========================================
+                           These can be accessed without logging in.
+                           ========================================= */
+                        .requestMatchers(
+                                "/login",
+                                "/css/**",
+                                "/images/**",
+                                "/js/**",
+                                "/favicon.ico",
+                                "/error"
+                        )
+                        .permitAll()
 
-                // Login form POST destination
-                .loginProcessingUrl("/login")
 
-                // Where users go after successful login
-                .defaultSuccessUrl("/dashboard", true)
 
-                // Failed login
-                .failureUrl("/login?error")
+                        /* =========================================
+                           USER MANAGEMENT
+                           =========================================
+                           ADMIN     = allowed
+                           IT_ADMIN  = allowed
+                           LECTURER  = blocked
+                           STUDENT   = blocked
+                           ========================================= */
+                        .requestMatchers(
+                                "/admin/users",
+                                "/admin/users/**"
+                        )
+                        .hasAnyRole(
+                                "ADMIN",
+                                "IT_ADMIN"
+                        )
 
-                .permitAll()
-            )
 
-            .logout(logout -> logout
 
-                .logoutUrl("/logout")
+                        /* =========================================
+                           ROOM ADMINISTRATION
+                           =========================================
+                           ADMIN     = allowed
+                           IT_ADMIN  = allowed
+                           LECTURER  = blocked
+                           STUDENT   = blocked
+                           ========================================= */
+                        .requestMatchers(
+                                "/admin/rooms",
+                                "/admin/rooms/**"
+                        )
+                        .hasAnyRole(
+                                "ADMIN",
+                                "IT_ADMIN"
+                        )
 
-                .logoutSuccessUrl("/login?logout")
 
-                .invalidateHttpSession(true)
 
-                .deleteCookies("JSESSIONID")
+                        /* =========================================
+                           BOOKING APPROVALS
+                           =========================================
+                           ADMIN only.
+                           ========================================= */
+                        .requestMatchers(
+                                "/admin/approvals",
+                                "/admin/approvals/**"
+                        )
+                        .hasRole(
+                                "ADMIN"
+                        )
 
-                .permitAll()
-            );
+
+
+                        /* =========================================
+                           ADMIN BOOKING MANAGEMENT
+                           =========================================
+                           ADMIN only.
+                           ========================================= */
+                        .requestMatchers(
+                                "/admin/bookings",
+                                "/admin/bookings/**"
+                        )
+                        .hasRole(
+                                "ADMIN"
+                        )
+
+
+
+                        /* =========================================
+                           COURSE MANAGEMENT
+                           =========================================
+                           ADMIN only.
+                           ========================================= */
+                        .requestMatchers(
+                                "/admin/courses",
+                                "/admin/courses/**"
+                        )
+                        .hasRole(
+                                "ADMIN"
+                        )
+
+
+
+                        /* =========================================
+                           REPORTS
+                           =========================================
+                           ADMIN only.
+                           ========================================= */
+                        .requestMatchers(
+                                "/admin/reports",
+                                "/admin/reports/**"
+                        )
+                        .hasRole(
+                                "ADMIN"
+                        )
+
+
+
+                        /* =========================================
+                           AUDIT LOG
+                           =========================================
+                           ADMIN only.
+                           ========================================= */
+                        .requestMatchers(
+                                "/admin/audit"
+                        )
+                        .hasRole(
+                                "ADMIN"
+                        )
+
+
+
+                        /* =========================================
+                           SYSTEM SETTINGS
+                           =========================================
+                           ADMIN only.
+                           ========================================= */
+                        .requestMatchers(
+                                "/admin/settings",
+                                "/admin/settings/**"
+                        )
+                        .hasRole(
+                                "ADMIN"
+                        )
+
+
+
+                        /* =========================================
+                           REMAINING ADMIN URLS
+                           =========================================
+                           This includes /admin itself.
+
+                           ADMIN only.
+                           ========================================= */
+                        .requestMatchers(
+                                "/admin",
+                                "/admin/**"
+                        )
+                        .hasRole(
+                                "ADMIN"
+                        )
+
+
+
+                        /* =========================================
+                           NORMAL AUTHENTICATED PAGES
+                           =========================================
+                           Dashboard
+                           Search
+                           My Bookings
+                           Calendar
+                           Notifications
+                           Profile
+
+                           All logged-in roles can access these.
+                           ========================================= */
+                        .anyRequest()
+                        .authenticated()
+                )
+
+
+
+                /* =================================================
+                   LOGIN
+                   ================================================= */
+                .formLogin(form -> form
+
+                        /*
+                         * Custom SpaceHub login page.
+                         */
+                        .loginPage(
+                                "/login"
+                        )
+
+
+                        /*
+                         * Spring Security processes the form here.
+                         */
+                        .loginProcessingUrl(
+                                "/login"
+                        )
+
+
+                        /*
+                         * All users go to the common dashboard
+                         * after successful login.
+                         *
+                         * Later we will make the dashboard
+                         * role-aware.
+                         */
+                        .defaultSuccessUrl(
+                                "/dashboard",
+                                true
+                        )
+
+
+                        /*
+                         * Incorrect username/password.
+                         */
+                        .failureUrl(
+                                "/login?error"
+                        )
+
+
+                        .permitAll()
+                )
+
+
+
+                /* =================================================
+                   LOGOUT
+                   ================================================= */
+                .logout(logout -> logout
+
+                        .logoutUrl(
+                                "/logout"
+                        )
+
+
+                        .logoutSuccessUrl(
+                                "/login?logout"
+                        )
+
+
+                        /*
+                         * Destroy the logged-in session.
+                         */
+                        .invalidateHttpSession(
+                                true
+                        )
+
+
+                        /*
+                         * Remove session cookie.
+                         */
+                        .deleteCookies(
+                                "JSESSIONID"
+                        )
+
+
+                        .permitAll()
+                );
+
 
         return http.build();
     }
+
 }
