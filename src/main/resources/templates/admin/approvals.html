@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Approvals')}"></head>
+<body>
+<nav th:replace="~{fragments :: nav}"></nav>
+<main class="container">
+    <div th:replace="~{fragments :: alerts}"></div>
+    <section class="page-head">
+        <div>
+            <p class="eyebrow">APPROVAL & CONFLICT MANAGEMENT</p>
+            <h1>Pending requests</h1>
+            <p>Open a request to compare all competing requests for the same room/time using the required decision order.</p>
+        </div>
+    </section>
+    <section class="panel table-wrap">
+        <table>
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Requested by</th>
+                <th>Course / type</th>
+                <th>Room</th>
+                <th>Date/time</th>
+                <th>Status</th>
+                <th>Search score</th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="b:${pending}">
+                <td th:text="${b.id}"></td>
+                <td th:text="${b.requester.name}"></td>
+                <td th:text="${b.course!=null?b.course.code:'ECA'}+' · '+${b.type}"></td>
+                <td th:text="${b.room.code}"></td>
+                <td th:text="${b.date}+' '+${b.startTime}+'–'+${b.endTime}"></td>
+                <td><span class="status" th:classappend="${b.status}" th:text="${b.status}"></span></td>
+                <td th:text="${b.searchScore}"></td>
+                <td><a class="btn primary small-btn" th:href="@{'/admin/approvals/'+${b.id}}">Review</a></td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(pending)}">
+                <td colspan="8" class="empty">No pending approval requests.</td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+</main>
+</body>
+</html>

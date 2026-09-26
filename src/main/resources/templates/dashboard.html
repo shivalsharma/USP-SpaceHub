@@ -1,0 +1,1090 @@
+<!DOCTYPE html>
+
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head th:replace="~{fragments :: head('Dashboard')}"></head>
+
+<body>
+
+<nav th:replace="~{fragments :: nav}"></nav>
+
+
+<main class="container">
+
+    <!-- =====================================================
+         ALERTS
+         ===================================================== -->
+    <div th:replace="~{fragments :: alerts}"></div>
+
+
+
+    <!-- =====================================================
+         STUDENT DASHBOARD
+         ===================================================== -->
+    <div sec:authorize="hasRole('STUDENT')">
+
+        <!-- HERO -->
+        <section class="hero">
+
+            <div>
+
+                <p class="eyebrow">
+                    STUDENT SPACE
+                </p>
+
+                <h1 th:text="'Welcome, ' + ${user.name}">
+                    Welcome, Student
+                </h1>
+
+                <p>
+                    Find available rooms, manage your booking requests
+                    and keep track of your upcoming reservations.
+                </p>
+
+            </div>
+
+
+            <a class="btn primary"
+               th:href="@{/search}">
+
+                Find a room
+
+            </a>
+
+        </section>
+
+
+
+        <!-- STUDENT STATS -->
+        <section class="stats">
+
+            <div class="stat">
+
+                <span>
+                    Pending requests
+                </span>
+
+                <strong th:text="${pending}">
+                    0
+                </strong>
+
+            </div>
+
+
+            <div class="stat">
+
+                <span>
+                    Approved bookings
+                </span>
+
+                <strong th:text="${approved}">
+                    0
+                </strong>
+
+            </div>
+
+
+            <div class="stat">
+
+                <span>
+                    Unread notifications
+                </span>
+
+                <strong th:text="${unread}">
+                    0
+                </strong>
+
+            </div>
+
+
+            <div class="stat">
+
+                <span>
+                    Role
+                </span>
+
+                <strong>
+                    STUDENT
+                </strong>
+
+            </div>
+
+        </section>
+
+
+
+        <div class="grid-2">
+
+            <!-- UPCOMING BOOKINGS -->
+            <section class="panel">
+
+                <div class="panel-head">
+
+                    <h2>
+                        Upcoming bookings
+                    </h2>
+
+
+                    <a th:href="@{/calendar}">
+                        Open calendar
+                    </a>
+
+                </div>
+
+
+                <div th:if="${#lists.isEmpty(upcoming)}"
+                     class="empty">
+
+                    No approved upcoming bookings.
+
+                </div>
+
+
+                <div class="booking-row"
+                     th:each="b : ${upcoming}">
+
+                    <div>
+
+                        <b th:text="${b.room != null ? b.room.code : 'Room'}">
+                            ROOM
+                        </b>
+
+                        <span th:text="${b.type}">
+                            TYPE
+                        </span>
+
+                    </div>
+
+
+                    <div th:text="${b.date} + ' · ' + ${b.startTime} + '–' + ${b.endTime}">
+                        DATE · TIME
+                    </div>
+
+                </div>
+
+            </section>
+
+
+
+            <!-- QUICK ACTIONS -->
+            <section class="panel">
+
+                <h2>
+                    Quick actions
+                </h2>
+
+
+                <div class="action-grid">
+
+
+                    <a class="action"
+                       th:href="@{/search}">
+
+                        <b>
+                            Optimized Search
+                        </b>
+
+                        <span>
+                            Find and rank valid available rooms.
+                        </span>
+
+                    </a>
+
+
+                    <a class="action"
+                       th:href="@{/bookings}">
+
+                        <b>
+                            My Bookings
+                        </b>
+
+                        <span>
+                            View pending, approved and alternative requests.
+                        </span>
+
+                    </a>
+
+
+                    <a class="action"
+                       th:href="@{/calendar}">
+
+                        <b>
+                            My Calendar
+                        </b>
+
+                        <span>
+                            View your bookings and scheduled activities.
+                        </span>
+
+                    </a>
+
+
+                    <a class="action"
+                       th:href="@{/notifications}">
+
+                        <b>
+                            Notifications
+                        </b>
+
+                        <span>
+                            Check booking decisions and system updates.
+                        </span>
+
+                    </a>
+
+
+                </div>
+
+            </section>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- =====================================================
+         LECTURER DASHBOARD
+         ===================================================== -->
+    <div sec:authorize="hasRole('LECTURER')">
+
+        <!-- HERO -->
+        <section class="hero">
+
+            <div>
+
+                <p class="eyebrow">
+                    LECTURER SPACE
+                </p>
+
+                <h1 th:text="'Welcome, ' + ${user.name}">
+                    Welcome, Lecturer
+                </h1>
+
+                <p>
+                    Manage teaching-space requests, check your timetable
+                    and keep track of your assigned courses.
+                </p>
+
+            </div>
+
+
+            <a class="btn primary"
+               th:href="@{/search}">
+
+                Find a room
+
+            </a>
+
+        </section>
+
+
+
+        <!-- LECTURER STATS -->
+        <section class="stats">
+
+            <div class="stat">
+
+                <span>
+                    Pending requests
+                </span>
+
+                <strong th:text="${pending}">
+                    0
+                </strong>
+
+            </div>
+
+
+            <div class="stat">
+
+                <span>
+                    Approved bookings
+                </span>
+
+                <strong th:text="${approved}">
+                    0
+                </strong>
+
+            </div>
+
+
+            <div class="stat">
+
+                <span>
+                    Unread notifications
+                </span>
+
+                <strong th:text="${unread}">
+                    0
+                </strong>
+
+            </div>
+
+
+            <div class="stat">
+
+                <span>
+                    Assigned courses
+                </span>
+
+                <strong th:text="${#lists.size(courses)}">
+                    0
+                </strong>
+
+            </div>
+
+        </section>
+
+
+
+        <div class="grid-2">
+
+
+            <!-- UPCOMING BOOKINGS -->
+            <section class="panel">
+
+                <div class="panel-head">
+
+                    <h2>
+                        Upcoming bookings
+                    </h2>
+
+
+                    <a th:href="@{/calendar}">
+                        Open calendar
+                    </a>
+
+                </div>
+
+
+                <div th:if="${#lists.isEmpty(upcoming)}"
+                     class="empty">
+
+                    No approved upcoming bookings.
+
+                </div>
+
+
+                <div class="booking-row"
+                     th:each="b : ${upcoming}">
+
+                    <div>
+
+                        <b th:text="${b.room != null ? b.room.code : 'Room'}">
+                            ROOM
+                        </b>
+
+                        <span th:text="${b.type}">
+                            TYPE
+                        </span>
+
+                    </div>
+
+
+                    <div th:text="${b.date} + ' · ' + ${b.startTime} + '–' + ${b.endTime}">
+                        DATE · TIME
+                    </div>
+
+                </div>
+
+            </section>
+
+
+
+            <!-- LECTURER QUICK ACTIONS -->
+            <section class="panel">
+
+                <h2>
+                    Quick actions
+                </h2>
+
+
+                <div class="action-grid">
+
+
+                    <a class="action"
+                       th:href="@{/search}">
+
+                        <b>
+                            Optimized Search
+                        </b>
+
+                        <span>
+                            Find suitable teaching rooms and laboratories.
+                        </span>
+
+                    </a>
+
+
+                    <a class="action"
+                       th:href="@{/bookings}">
+
+                        <b>
+                            My Bookings
+                        </b>
+
+                        <span>
+                            Track teaching-space requests and alternatives.
+                        </span>
+
+                    </a>
+
+
+                    <a class="action"
+                       th:href="@{/profile}">
+
+                        <b>
+                            Update Timetable
+                        </b>
+
+                        <span>
+                            Add busy periods to help prevent booking clashes.
+                        </span>
+
+                    </a>
+
+
+                    <a class="action"
+                       th:href="@{/calendar}">
+
+                        <b>
+                            Calendar
+                        </b>
+
+                        <span>
+                            Review scheduled rooms and upcoming sessions.
+                        </span>
+
+                    </a>
+
+
+                </div>
+
+            </section>
+
+        </div>
+
+
+
+        <!-- ASSIGNED COURSES -->
+        <section class="panel">
+
+            <div class="panel-head">
+
+                <h2>
+                    Your assigned courses
+                </h2>
+
+            </div>
+
+
+            <div th:if="${#lists.isEmpty(courses)}"
+                 class="empty">
+
+                No active courses are currently assigned to you.
+
+            </div>
+
+
+            <div class="chips"
+                 th:if="${!#lists.isEmpty(courses)}">
+
+                <span class="chip"
+                      th:each="c : ${courses}"
+                      th:text="${c.code} + ' · ' + ${c.name}">
+
+                    COURSE
+
+                </span>
+
+            </div>
+
+        </section>
+
+    </div>
+
+
+
+    <!-- =====================================================
+         IT ADMIN DASHBOARD
+         ===================================================== -->
+    <div sec:authorize="hasRole('IT_ADMIN')">
+
+        <!-- HERO -->
+        <section class="hero">
+
+            <div>
+
+                <p class="eyebrow">
+                    IT ADMINISTRATION
+                </p>
+
+                <h1 th:text="'Welcome, ' + ${user.name}">
+                    Welcome, IT Administrator
+                </h1>
+
+                <p>
+                    Manage SpaceHub user accounts, access permissions
+                    and technical room information from one place.
+                </p>
+
+            </div>
+
+
+            <a class="btn primary"
+               th:href="@{/admin/users}">
+
+                Manage users
+
+            </a>
+
+        </section>
+
+
+
+        <!-- IT ADMIN STATS -->
+        <section class="stats">
+
+
+            <div class="stat">
+
+                <span>
+                    Total users
+                </span>
+
+                <strong th:text="${totalUsers}">
+                    0
+                </strong>
+
+            </div>
+
+
+            <div class="stat">
+
+                <span>
+                    Active users
+                </span>
+
+                <strong th:text="${activeUsers}">
+                    0
+                </strong>
+
+            </div>
+
+
+            <div class="stat">
+
+                <span>
+                    Total rooms
+                </span>
+
+                <strong th:text="${totalRooms}">
+                    0
+                </strong>
+
+            </div>
+
+
+            <div class="stat">
+
+                <span>
+                    Rooms needing attention
+                </span>
+
+                <strong th:text="${roomsNeedingAttention}">
+                    0
+                </strong>
+
+            </div>
+
+        </section>
+
+
+
+        <div class="grid-2">
+
+
+            <!-- ACCOUNT MANAGEMENT -->
+            <section class="panel">
+
+                <div class="panel-head">
+
+                    <h2>
+                        Account administration
+                    </h2>
+
+                    <a th:href="@{/admin/users}">
+                        Open users
+                    </a>
+
+                </div>
+
+
+                <p>
+                    Manage SpaceHub accounts, roles, departments,
+                    booking permissions and account status.
+                </p>
+
+
+                <div class="action-grid">
+
+
+                    <a class="action"
+                       th:href="@{/admin/users}">
+
+                        <b>
+                            User Management
+                        </b>
+
+                        <span>
+                            Add, edit, disable and reactivate users.
+                        </span>
+
+                    </a>
+
+
+                    <a class="action"
+                       th:href="@{/admin/users/new}">
+
+                        <b>
+                            Add User
+                        </b>
+
+                        <span>
+                            Create a new SpaceHub account and assign a role.
+                        </span>
+
+                    </a>
+
+
+                </div>
+
+            </section>
+
+
+
+            <!-- TECHNICAL MANAGEMENT -->
+            <section class="panel">
+
+                <div class="panel-head">
+
+                    <h2>
+                        Technical management
+                    </h2>
+
+                </div>
+
+
+                <div class="action-grid">
+
+
+                    <a class="action"
+                       th:href="@{/admin/rooms}">
+
+                        <b>
+                            Room Management
+                        </b>
+
+                        <span>
+                            Review room facilities and operational status.
+                        </span>
+
+                    </a>
+
+
+                    <a class="action"
+                       th:href="@{/profile}">
+
+                        <b>
+                            My Profile
+                        </b>
+
+                        <span>
+                            Review your administrator account information.
+                        </span>
+
+                    </a>
+
+
+                    <a class="action"
+                       th:href="@{/notifications}">
+
+                        <b>
+                            Notifications
+                        </b>
+
+                        <span>
+                            View account and system-related updates.
+                        </span>
+
+                    </a>
+
+
+                </div>
+
+            </section>
+
+        </div>
+
+    </div>
+
+
+
+    <!-- =====================================================
+         SYSTEM ADMIN DASHBOARD
+         ===================================================== -->
+    <div sec:authorize="hasRole('ADMIN')">
+
+        <!-- HERO -->
+        <section class="hero">
+
+            <div>
+
+                <p class="eyebrow">
+                    SYSTEM ADMINISTRATION
+                </p>
+
+                <h1 th:text="'Welcome, ' + ${user.name}">
+                    Welcome, Administrator
+                </h1>
+
+                <p>
+                    Monitor SpaceHub activity, manage users and review
+                    booking requests requiring administrative action.
+                </p>
+
+            </div>
+
+
+            <a class="btn primary"
+               th:href="@{/admin/approvals}">
+
+                Review approvals
+
+            </a>
+
+        </section>
+
+
+
+        <!-- ADMIN STATS -->
+        <section class="stats">
+
+
+            <div class="stat">
+
+                <span>
+                    Pending approvals
+                </span>
+
+                <strong th:text="${pending}">
+                    0
+                </strong>
+
+            </div>
+
+
+            <div class="stat">
+
+                <span>
+                    Approved bookings
+                </span>
+
+                <strong th:text="${approved}">
+                    0
+                </strong>
+
+            </div>
+
+
+            <div class="stat">
+
+                <span>
+                    Total users
+                </span>
+
+                <strong th:text="${totalUsers}">
+                    0
+                </strong>
+
+            </div>
+
+
+            <div class="stat">
+
+                <span>
+                    Total rooms
+                </span>
+
+                <strong th:text="${totalRooms}">
+                    0
+                </strong>
+
+            </div>
+
+        </section>
+
+
+
+        <div class="grid-2">
+
+
+            <!-- ADMIN QUICK ACTIONS -->
+            <section class="panel">
+
+                <div class="panel-head">
+
+                    <h2>
+                        Administration
+                    </h2>
+
+                </div>
+
+
+                <div class="action-grid">
+
+
+                    <a class="action"
+                       th:href="@{/admin/approvals}">
+
+                        <b>
+                            Approval Management
+                        </b>
+
+                        <span>
+                            Review competing requests and booking conflicts.
+                        </span>
+
+                    </a>
+
+
+                    <a class="action"
+                       th:href="@{/admin/users}">
+
+                        <b>
+                            User Management
+                        </b>
+
+                        <span>
+                            Manage accounts, roles and account access.
+                        </span>
+
+                    </a>
+
+
+                    <a class="action"
+                       th:href="@{/admin/rooms}">
+
+                        <b>
+                            Room Management
+                        </b>
+
+                        <span>
+                            Manage room capacity, facilities and status.
+                        </span>
+
+                    </a>
+
+
+                    <a class="action"
+                       th:href="@{/admin/courses}">
+
+                        <b>
+                            Course Management
+                        </b>
+
+                        <span>
+                            Manage course information and booking requirements.
+                        </span>
+
+                    </a>
+
+
+                    <a class="action"
+                       th:href="@{/admin/reports}">
+
+                        <b>
+                            Reports
+                        </b>
+
+                        <span>
+                            Review room utilisation and booking activity.
+                        </span>
+
+                    </a>
+
+
+                    <a class="action"
+                       th:href="@{/admin/audit}">
+
+                        <b>
+                            Audit Log
+                        </b>
+
+                        <span>
+                            Review accountable administrative actions.
+                        </span>
+
+                    </a>
+
+
+                </div>
+
+            </section>
+
+
+
+            <!-- SYSTEM OVERVIEW -->
+            <section class="panel">
+
+                <div class="panel-head">
+
+                    <h2>
+                        System overview
+                    </h2>
+
+                </div>
+
+
+                <div class="action-grid">
+
+
+                    <div class="action">
+
+                        <b>
+                            Registered users
+                        </b>
+
+                        <span>
+                            <strong th:text="${totalUsers}">
+                                0
+                            </strong>
+                            accounts currently registered.
+                        </span>
+
+                    </div>
+
+
+                    <div class="action">
+
+                        <b>
+                            Rooms
+                        </b>
+
+                        <span>
+                            <strong th:text="${totalRooms}">
+                                0
+                            </strong>
+                            rooms available in SpaceHub.
+                        </span>
+
+                    </div>
+
+
+                    <div class="action">
+
+                        <b>
+                            Courses
+                        </b>
+
+                        <span>
+                            <strong th:text="${totalCourses}">
+                                0
+                            </strong>
+                            courses stored in the system.
+                        </span>
+
+                    </div>
+
+
+                    <a class="action"
+                       th:href="@{/admin/settings}">
+
+                        <b>
+                            System Settings
+                        </b>
+
+                        <span>
+                            Configure SpaceHub booking rules and policies.
+                        </span>
+
+                    </a>
+
+
+                </div>
+
+            </section>
+
+        </div>
+
+
+
+        <!-- SYSTEM UPCOMING BOOKINGS -->
+        <section class="panel">
+
+            <div class="panel-head">
+
+                <h2>
+                    Upcoming approved bookings
+                </h2>
+
+
+                <a th:href="@{/admin/bookings}">
+                    Booking administration
+                </a>
+
+            </div>
+
+
+            <div th:if="${#lists.isEmpty(upcoming)}"
+                 class="empty">
+
+                No approved upcoming bookings.
+
+            </div>
+
+
+            <div class="booking-row"
+                 th:each="b : ${upcoming}">
+
+                <div>
+
+                    <b th:text="${b.room != null ? b.room.code : 'Room'}">
+                        ROOM
+                    </b>
+
+                    <span th:text="${b.type}">
+                        TYPE
+                    </span>
+
+                </div>
+
+
+                <div>
+
+                    <span th:text="${b.requester != null ? b.requester.name : 'User'}">
+                        Requester
+                    </span>
+
+                    <span th:text="${b.date} + ' · ' + ${b.startTime} + '–' + ${b.endTime}">
+                        DATE · TIME
+                    </span>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </div>
+
+
+</main>
+
+
+</body>
+
+</html>
