@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments :: head('My Bookings')}"></head>
+
+<body>
+
+<nav th:replace="~{fragments :: nav}"></nav>
+
+<main class="container my-bookings-page">
+
+    <!-- ALERTS -->
+    <div th:replace="~{fragments :: alerts}"></div>
+
+
+    <!-- =====================================================
+         PAGE HEADER
+         ===================================================== -->
+    <section class="my-bookings-header">
+
+        <div>
+            <p class="my-bookings-eyebrow">BOOKING MANAGEMENT</p>
+
+            <h1>My Bookings</h1>
+
+            <p class="my-bookings-subtitle">
+                Track your room requests, approval decisions and alternative offers.
+            </p>
+        </div>
+
+        <a class="my-new-booking-btn"
+           th:href="@{/search}">
+            <span>＋</span>
+            New Booking
+        </a>
+
+    </section>
+
+
+    <!-- =====================================================
+         SUMMARY CARDS
+         ===================================================== -->
+    <section class="booking-summary-grid">
+
+        <!-- TOTAL -->
+        <div class="booking-summary-card total">
+            <div class="summary-icon">▣</div>
+
+            <div>
+                <span>Total Bookings</span>
+
+                <strong th:text="${#lists.size(bookings)}">
+                    0
+                </strong>
+            </div>
+        </div>
+
+
+        <!-- PENDING -->
+        <div class="booking-summary-card pending">
+            <div class="summary-icon">◷</div>
+
+            <div>
+                <span>Pending</span>
+
+                <strong th:text="${#lists.size(
+                    bookings.?[status.name() == 'PENDING'
+                    or status.name() == 'ALTERNATIVE_PROPOSED']
+                )}">
+                    0
+                </strong>
+            </div>
+        </div>
+
+
+        <!-- APPROVED -->
+        <div class="booking-summary-card approved">
+            <div class="summary-icon">✓</div>
+
+            <div>
+                <span>Approved</span>
+
+                <strong th:text="${#lists.size(
+                    bookings.?[status.name() == 'APPROVED']
+                )}">
+                    0
+                </strong>
+            </div>
+        </div>
+
+
+        <!-- REJECTED -->
+        <div class="booking-summary-card rejected">
+            <div class="summary-icon">×</div>
+
+            <div>
+                <span>Rejected</span>
+
+                <strong th:text="${#lists.size(
+                    bookings.?[status.name() == 'REJECTED']
+                )}">
+                    0
+                </strong>
+            </div>
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         ALTERNATIVE OFFERS
+         ===================================================== -->
+    <section class="student-alternatives-section"
+             th:if="${!#lists.isEmpty(alternatives)}">
+
+        <div class="student-alternative-heading">
+
+            <div>
+                <span class="alternative-heading-icon">↪</span>
+
+                <div>
+                    <h2>Alternative Room Suggested</h2>
+
+                    <p>
+                        An administrator has suggested another suitable
+                        option for your booking.
+                    </p>
+                </div>
+            </div>
+
+            <span class="action-required-badge">
+                Action Required
+            </span>
+
+        </div>
+
+
+        <article class="student-alternative-card"
+                 th:each="a:${alternatives}">
+
+            <!-- ROOM -->
+            <div class="student-alternative-room">
+
+                <div class="student-room-icon">
+                    🏫
+                </div>
+
+                <div>
+                    <small>Suggested Room</small>
+
+                    <strong th:text="${a.room.code}">
+                        ICT-LAB-2
+                    </strong>
+
+                    <span th:if="${a.room.name != null}"
+                          th:text="${a.room.name}">
+                        Computer Laboratory
+                    </span>
+                </div>
+
+            </div>
+
+
+            <!-- DATE -->
+            <div class="student-alternative-detail">
+
+                <small>Date</small>
+
+                <strong th:text="${a.date}">
+                    2026-09-21
+                </strong>
+
+            </div>
+
+
+            <!-- TIME -->
+            <div class="student-alternative-detail">
+
+                <small>Time</small>
+
+                <strong th:text="${a.startTime}
+                    + ' – ' +
+                    ${a.endTime}">
+                    14:00 – 16:00
+                </strong>
+
+            </div>
+
+
+            <!-- MATCH -->
+            <div class="student-alternative-match">
+
+                <strong th:text="${a.score} + '%'">
+                    96.2%
+                </strong>
+
+                <span>Match</span>
+
+            </div>
+
+
+            <!-- EXPLANATION -->
+            <div class="student-alternative-explanation">
+
+                <span>ⓘ</span>
+
+                <p th:text="${a.explanation}">
+                    Same time in a different suitable room.
+                </p>
+
+            </div>
+
+
+            <!-- ACTIONS -->
+            <div class="student-alternative-actions">
+
+                <form th:action="@{'/bookings/alternatives/'
+                        + ${a.id}
+                        + '/accept'}"
+                      method="post">
+
+                    <button type="submit"
+                            class="student-alt-btn accept">
+                        ✓ Accept Alternative
+                    </button>
+
+                </form>
+
+
+                <form th:action="@{'/bookings/alternatives/'
+                        + ${a.id}
+                        + '/reject'}"
+                      method="post">
+
+                    <button type="submit"
+                            class="student-alt-btn reject">
+                        ✕ Reject
+                    </button>
+
+                </form>
+
+            </div>
+
+        </article>
+
+    </section>
+
+
+    <!-- =====================================================
+         BOOKINGS
+         ===================================================== -->
+    <section class="my-bookings-card">
+
+        <!-- TABS -->
+        <div class="my-bookings-tabs">
+
+            <button type="button"
+                    class="my-booking-tab active"
+                    data-filter="ALL"
+                    onclick="filterBookings('ALL', this)">
+                All
+            </button>
+
+            <button type="button"
+                    class="my-booking-tab"
+                    data-filter="PENDING"
+                    onclick="filterBookings('PENDING', this)">
+                Pending
+            </button>
+
+            <button type="button"
+                    class="my-booking-tab"
+                    data-filter="APPROVED"
+                    onclick="filterBookings('APPROVED', this)">
+                Approved
+            </button>
+
+            <button type="button"
+                    class="my-booking-tab"
+                    data-filter="REJECTED"
+                    onclick="filterBookings('REJECTED', this)">
+                Rejected
+            </button>
+
+            <button type="button"
+                    class="my-booking-tab"
+                    data-filter="CANCELLED"
+                    onclick="filterBookings('CANCELLED', this)">
+                Cancelled
+            </button>
+
+        </div>
+
+
+        <!-- TOOLBAR -->
+        <div class="my-bookings-toolbar">
+
+            <div>
+                <h2>Your Booking Requests</h2>
+
+                <p>
+                    View the latest status and decision for each request.
+                </p>
+            </div>
+
+
+            <div class="booking-search-box">
+                <span>⌕</span>
+
+                <input type="text"
+                       id="bookingSearch"
+                       placeholder="Search bookings..."
+                       onkeyup="searchBookings()">
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             BOOKING LIST
+             ================================================= -->
+        <div class="student-booking-list"
+             id="bookingList">
+
+
+            <article class="student-booking-card"
+                     th:each="b:${bookings}"
+                     th:attr="data-status=${b.status.name()},
+                              data-search=${(
+                                  b.room.code + ' ' +
+                                  b.type + ' ' +
+                                  (b.course != null ? b.course.code : 'ECA')
+                              ).toLowerCase()}">
+
+
+                <!-- DATE BLOCK -->
+                <div class="student-booking-date">
+
+                    <span>DATE</span>
+
+                    <strong th:text="${b.date}">
+                        2026-09-21
+                    </strong>
+
+                </div>
+
+
+                <!-- MAIN INFORMATION -->
+                <div class="student-booking-main">
+
+                    <div class="student-booking-title-row">
+
+                        <h3 th:text="${b.course != null
+                            ? b.course.code + ' – ' + b.type
+                            : 'ECA – ' + b.type}">
+                            ECA – ECA
+                        </h3>
+
+
+                        <!-- STATUS -->
+                        <span class="student-booking-status"
+                              th:classappend="${b.status.name().toLowerCase()}"
+                              th:text="${b.status}">
+                            PENDING
+                        </span>
+
+                    </div>
+
+
+                    <div class="student-booking-meta">
+
+                        <span>
+                            <b>🏫</b>
+                            <span th:text="${b.room.code}">
+                                ICT-LAB-3
+                            </span>
+                        </span>
+
+
+                        <span>
+                            <b>🕒</b>
+                            <span th:text="${b.startTime}
+                                + ' – ' +
+                                ${b.endTime}">
+                                14:00 – 16:00
+                            </span>
+                        </span>
+
+
+                        <span>
+                            <b>👥</b>
+                            <span th:text="${b.expectedStudents}
+                                + ' attendees'">
+                                30 attendees
+                            </span>
+                        </span>
+
+                    </div>
+
+
+                    <!-- DECISION / STATUS MESSAGE -->
+                    <div class="student-booking-decision"
+                         th:if="${b.adminDecisionReason != null
+                              or b.recommendationReason != null}">
+
+                        <span class="decision-info-icon">
+                            ⓘ
+                        </span>
+
+                        <div>
+                            <small>
+                                Decision / Booking Update
+                            </small>
+
+                            <p th:text="${b.adminDecisionReason != null
+                                ? b.adminDecisionReason
+                                : b.recommendationReason}">
+                                Booking decision.
+                            </p>
+                        </div>
+
+                    </div>
+
+
+                    <!-- FRIENDLY PENDING MESSAGE -->
+                    <div class="student-booking-waiting"
+                         th:if="${b.status.name() == 'PENDING'
+                              and b.adminDecisionReason == null}">
+
+                        <span>◷</span>
+
+                        <p>
+                            Your request is awaiting administrator approval.
+                        </p>
+
+                    </div>
+
+
+                    <!-- ALTERNATIVE STATUS MESSAGE -->
+                    <div class="student-booking-waiting alternative-waiting"
+                         th:if="${b.status.name() == 'ALTERNATIVE_PROPOSED'}">
+
+                        <span>↪</span>
+
+                        <p>
+                            An alternative option has been proposed.
+                            Review the offer above.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <!-- ACTION -->
+                <div class="student-booking-actions">
+
+                    <form th:if="${b.status.name() == 'PENDING'
+                              or b.status.name() == 'APPROVED'
+                              or b.status.name() == 'ALTERNATIVE_PROPOSED'}"
+                          th:action="@{'/bookings/'
+                              + ${b.id}
+                              + '/cancel'}"
+                          method="post"
+                          onsubmit="return confirm(
+                              'Are you sure you want to cancel this booking?'
+                          );">
+
+                        <button type="submit"
+                                class="student-cancel-btn">
+                            Cancel Booking
+                        </button>
+
+                    </form>
+
+                </div>
+
+            </article>
+
+
+            <!-- EMPTY FROM SERVER -->
+            <div class="my-bookings-empty"
+                 th:if="${#lists.isEmpty(bookings)}">
+
+                <div class="empty-booking-icon">
+                    📅
+                </div>
+
+                <h3>No bookings yet</h3>
+
+                <p>
+                    You haven't made any room booking requests yet.
+                </p>
+
+                <a class="my-new-booking-btn"
+                   th:href="@{/search}">
+                    ＋ Make Your First Booking
+                </a>
+
+            </div>
+
+
+            <!-- EMPTY AFTER FILTERING -->
+            <div class="my-bookings-empty"
+                 id="filterEmptyState"
+                 style="display:none;">
+
+                <div class="empty-booking-icon">
+                    🔎
+                </div>
+
+                <h3>No matching bookings</h3>
+
+                <p>
+                    There are no bookings matching this filter.
+                </p>
+
+            </div>
+
+        </div>
+
+    </section>
+
+</main>
+
+
+<!-- =========================================================
+     SIMPLE FILTER + SEARCH
+     ========================================================= -->
+<script>
+
+    let currentBookingFilter = 'ALL';
+
+
+    function filterBookings(status, button) {
+
+        currentBookingFilter = status;
+
+        document.querySelectorAll('.my-booking-tab')
+            .forEach(function(tab) {
+                tab.classList.remove('active');
+            });
+
+        button.classList.add('active');
+
+        applyBookingFilters();
+    }
+
+
+    function searchBookings() {
+        applyBookingFilters();
+    }
+
+
+    function applyBookingFilters() {
+
+        const searchInput =
+            document.getElementById('bookingSearch');
+
+        const search =
+            searchInput
+                ? searchInput.value.toLowerCase().trim()
+                : '';
+
+        const cards =
+            document.querySelectorAll('.student-booking-card');
+
+        let visibleCount = 0;
+
+
+        cards.forEach(function(card) {
+
+            const status =
+                card.dataset.status;
+
+            const searchable =
+                card.dataset.search || '';
+
+
+            let statusMatches = false;
+
+
+            if (currentBookingFilter === 'ALL') {
+
+                statusMatches = true;
+
+            } else if (currentBookingFilter === 'PENDING') {
+
+                statusMatches =
+                    status === 'PENDING' ||
+                    status === 'ALTERNATIVE_PROPOSED';
+
+            } else {
+
+                statusMatches =
+                    status === currentBookingFilter;
+            }
+
+
+            const searchMatches =
+                searchable.includes(search);
+
+
+            if (statusMatches && searchMatches) {
+
+                card.style.display = '';
+                visibleCount++;
+
+            } else {
+
+                card.style.display = 'none';
+            }
+
+        });
+
+
+        const emptyState =
+            document.getElementById('filterEmptyState');
+
+
+        if (emptyState) {
+
+            emptyState.style.display =
+                cards.length > 0 && visibleCount === 0
+                    ? 'block'
+                    : 'none';
+        }
+    }
+
+</script>
+
+</body>
+</html>
