@@ -1,48 +1,462 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
+
 <head th:replace="~{fragments :: head('Approvals')}"></head>
+
 <body>
+
+<!-- =========================================================
+     SHARED GLOBAL SIDEBAR
+     ========================================================= -->
 <nav th:replace="~{fragments :: nav}"></nav>
+
+
+<!-- =========================================================
+     MAIN CONTENT
+     ========================================================= -->
 <main class="container">
+
     <div th:replace="~{fragments :: alerts}"></div>
+
+
+    <!-- =====================================================
+         PAGE HEADING
+         ===================================================== -->
     <section class="page-head">
+
         <div>
-            <p class="eyebrow">APPROVAL & CONFLICT MANAGEMENT</p>
-            <h1>Pending requests</h1>
-            <p>Open a request to compare all competing requests for the same room/time using the required decision order.</p>
+
+            <p class="eyebrow">
+                BOOKING MANAGEMENT
+            </p>
+
+            <h1>
+                Approvals (Admin)
+            </h1>
+
+            <p>
+                Review and manage room booking requests.
+            </p>
+
         </div>
+
     </section>
-    <section class="panel table-wrap">
-        <table>
-            <thead>
-            <tr>
-                <th>ID</th>
-                <th>Requested by</th>
-                <th>Course / type</th>
-                <th>Room</th>
-                <th>Date/time</th>
-                <th>Status</th>
-                <th>Search score</th>
-                <th></th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr th:each="b:${pending}">
-                <td th:text="${b.id}"></td>
-                <td th:text="${b.requester.name}"></td>
-                <td th:text="${b.course!=null?b.course.code:'ECA'}+' · '+${b.type}"></td>
-                <td th:text="${b.room.code}"></td>
-                <td th:text="${b.date}+' '+${b.startTime}+'–'+${b.endTime}"></td>
-                <td><span class="status" th:classappend="${b.status}" th:text="${b.status}"></span></td>
-                <td th:text="${b.searchScore}"></td>
-                <td><a class="btn primary small-btn" th:href="@{'/admin/approvals/'+${b.id}}">Review</a></td>
-            </tr>
-            <tr th:if="${#lists.isEmpty(pending)}">
-                <td colspan="8" class="empty">No pending approval requests.</td>
-            </tr>
-            </tbody>
-        </table>
+
+
+    <!-- =====================================================
+         APPROVAL PANEL
+         ===================================================== -->
+    <section class="panel approvals-main-panel">
+
+
+        <!-- =================================================
+             TABS
+             ================================================= -->
+        <div class="approval-tabs">
+
+            <button type="button"
+                    id="pendingBtn"
+                    class="approval-tab active"
+                    onclick="showTab('pending')">
+
+                Pending
+                (<span th:text="${#lists.size(pending)}">0</span>)
+
+            </button>
+
+
+            <button type="button"
+                    id="approvedBtn"
+                    class="approval-tab"
+                    onclick="showTab('approved')">
+
+                Approved
+                (<span th:text="${#lists.size(approved)}">0</span>)
+
+            </button>
+
+
+            <button type="button"
+                    id="rejectedBtn"
+                    class="approval-tab"
+                    onclick="showTab('rejected')">
+
+                Rejected
+                (<span th:text="${#lists.size(rejected)}">0</span>)
+
+            </button>
+
+        </div>
+
+
+        <!-- =================================================
+             PENDING BOOKINGS
+             ================================================= -->
+        <div id="pendingTab"
+             class="table-wrap approval-table">
+
+            <table>
+
+                <thead>
+
+                <tr>
+
+                    <th>Date</th>
+
+                    <th>Time</th>
+
+                    <th>Course / Activity</th>
+
+                    <th>Room</th>
+
+                    <th>Requested By</th>
+
+                    <th>Actions</th>
+
+                </tr>
+
+                </thead>
+
+
+                <tbody>
+
+
+                <tr th:each="b : ${pending}">
+
+                    <td th:text="${b.date}">
+                    </td>
+
+
+                    <td th:text="${b.startTime} + ' – ' + ${b.endTime}">
+                    </td>
+
+
+                    <td th:text="${b.course != null
+                        ? b.course.code
+                        : 'ECA'} + ' – ' + ${b.type}">
+                    </td>
+
+
+                    <td th:text="${b.room.code}">
+                    </td>
+
+
+                    <td th:text="${b.requester.name}">
+                    </td>
+
+
+                    <td>
+
+                        <a class="btn primary small-btn"
+                           th:href="@{'/admin/approvals/' + ${b.id}}">
+
+                            Review
+
+                        </a>
+
+                    </td>
+
+                </tr>
+
+
+                <tr th:if="${#lists.isEmpty(pending)}">
+
+                    <td colspan="6"
+                        class="empty">
+
+                        No pending booking requests.
+
+                    </td>
+
+                </tr>
+
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+
+        <!-- =================================================
+             APPROVED BOOKINGS
+             ================================================= -->
+        <div id="approvedTab"
+             class="table-wrap approval-table"
+             style="display:none;">
+
+            <table>
+
+                <thead>
+
+                <tr>
+
+                    <th>Date</th>
+
+                    <th>Time</th>
+
+                    <th>Course / Activity</th>
+
+                    <th>Room</th>
+
+                    <th>Requested By</th>
+
+                    <th>Status</th>
+
+                </tr>
+
+                </thead>
+
+
+                <tbody>
+
+
+                <tr th:each="b : ${approved}">
+
+                    <td th:text="${b.date}">
+                    </td>
+
+
+                    <td th:text="${b.startTime} + ' – ' + ${b.endTime}">
+                    </td>
+
+
+                    <td th:text="${b.course != null
+                        ? b.course.code
+                        : 'ECA'} + ' – ' + ${b.type}">
+                    </td>
+
+
+                    <td th:text="${b.room.code}">
+                    </td>
+
+
+                    <td th:text="${b.requester.name}">
+                    </td>
+
+
+                    <td>
+
+                        <span class="status APPROVED">
+                            APPROVED
+                        </span>
+
+                    </td>
+
+                </tr>
+
+
+                <tr th:if="${#lists.isEmpty(approved)}">
+
+                    <td colspan="6"
+                        class="empty">
+
+                        No approved bookings.
+
+                    </td>
+
+                </tr>
+
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+
+        <!-- =================================================
+             REJECTED BOOKINGS
+             ================================================= -->
+        <div id="rejectedTab"
+             class="table-wrap approval-table"
+             style="display:none;">
+
+            <table>
+
+                <thead>
+
+                <tr>
+
+                    <th>Date</th>
+
+                    <th>Time</th>
+
+                    <th>Course / Activity</th>
+
+                    <th>Room</th>
+
+                    <th>Requested By</th>
+
+                    <th>Reason</th>
+
+                    <th>Status</th>
+
+                </tr>
+
+                </thead>
+
+
+                <tbody>
+
+
+                <tr th:each="b : ${rejected}">
+
+                    <td th:text="${b.date}">
+                    </td>
+
+
+                    <td th:text="${b.startTime} + ' – ' + ${b.endTime}">
+                    </td>
+
+
+                    <td th:text="${b.course != null
+                        ? b.course.code
+                        : 'ECA'} + ' – ' + ${b.type}">
+                    </td>
+
+
+                    <td th:text="${b.room.code}">
+                    </td>
+
+
+                    <td th:text="${b.requester.name}">
+                    </td>
+
+
+                    <td th:text="${b.adminDecisionReason}">
+                    </td>
+
+
+                    <td>
+
+                        <span class="status REJECTED">
+                            REJECTED
+                        </span>
+
+                    </td>
+
+                </tr>
+
+
+                <tr th:if="${#lists.isEmpty(rejected)}">
+
+                    <td colspan="7"
+                        class="empty">
+
+                        No rejected bookings.
+
+                    </td>
+
+                </tr>
+
+
+                </tbody>
+
+            </table>
+
+        </div>
+
     </section>
+
 </main>
+
+
+<!-- =========================================================
+     TAB SCRIPT
+     ========================================================= -->
+<script>
+
+    function showTab(tab) {
+
+        const tabs = [
+            'pending',
+            'approved',
+            'rejected'
+        ];
+
+
+        tabs.forEach(function (name) {
+
+            document
+                .getElementById(name + 'Tab')
+                .style.display = 'none';
+
+
+            document
+                .getElementById(name + 'Btn')
+                .classList.remove('active');
+
+        });
+
+
+        document
+            .getElementById(tab + 'Tab')
+            .style.display = 'block';
+
+
+        document
+            .getElementById(tab + 'Btn')
+            .classList.add('active');
+
+    }
+
+</script>
+
+
+<!-- =========================================================
+     ACTIVE SIDEBAR PAGE
+     ========================================================= -->
+<script>
+
+    document.addEventListener("DOMContentLoaded", function () {
+
+        const currentPath = window.location.pathname;
+
+        document
+            .querySelectorAll(".global-sidebar-link")
+            .forEach(function (link) {
+
+                const linkPath = new URL(link.href).pathname;
+
+                let active = false;
+
+
+                if (linkPath === "/dashboard") {
+
+                    active =
+                        currentPath === "/dashboard";
+
+                }
+
+                else if (linkPath === "/admin") {
+
+                    active =
+                        currentPath === "/admin";
+
+                }
+
+                else {
+
+                    active =
+                        currentPath === linkPath ||
+                        currentPath.startsWith(linkPath + "/");
+
+                }
+
+
+                if (active) {
+
+                    link.classList.add("active");
+
+                }
+
+            });
+
+    });
+
+</script>
+
+
 </body>
 </html>

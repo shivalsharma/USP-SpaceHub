@@ -1,62 +1,967 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments :: head('Conflict review')}"></head>
+
+<head th:replace="~{fragments :: head('Review Booking Request')}"></head>
+
 <body>
+
 <nav th:replace="~{fragments :: nav}"></nav>
-<main class="container">
+
+<main class="container booking-review-page">
+
     <div th:replace="~{fragments :: alerts}"></div>
-    <section class="page-head">
+
+
+    <!-- =========================================================
+         PAGE HEADER
+         ========================================================= -->
+    <section class="review-page-header">
+
         <div>
-            <p class="eyebrow">EXPLAINABLE DECISION</p>
-            <h1 th:text="'Conflict review · '+${focus.room.code}"></h1>
-            <p th:text="${focus.date}+' '+${focus.startTime}+'–'+${focus.endTime}"></p>
+            <p class="review-breadcrumb">
+                Approvals <span>›</span> Review Booking Request
+            </p>
+
+            <h1>Review Booking Request</h1>
+
+            <p class="review-subtitle">
+                Check the request details, review system recommendations
+                and choose an action.
+            </p>
         </div>
-        <a class="btn ghost" th:href="@{/admin/approvals}">Back to approvals</a>
+
+        <a class="review-back-btn"
+           th:href="@{/admin/approvals}">
+            ← Back to Approvals
+        </a>
+
     </section>
-    <div class="rule-banner">
-        <b>Decision order:</b> Hard constraints → LAB/TUTORIAL &gt; ECA → Course need → Time fairness → Room fairness → Capacity/suitability → Alternative availability.
-    </div>
-    <article class="approval-card" th:each="r,stat:${recommendations}" th:classappend="${stat.index==0&&r.valid}?' recommended':''">
-        <div class="approval-head">
-            <div>
-                <span class="badge best" th:if="${stat.index==0&&r.valid}">SYSTEM RECOMMENDATION</span>
-                <h2 th:text="'#'+${r.booking.id}+' · '+${r.booking.requester.name}"></h2>
-                <p th:text="${r.booking.course!=null?r.booking.course.code:'ECA'}+' · '+${r.booking.type}+' · '+${r.booking.expectedStudents}+' students'"></p>
+
+
+    <!-- =========================================================
+         EACH REQUEST / RECOMMENDATION
+         ========================================================= -->
+    <section th:each="r,stat : ${recommendations}"
+             class="review-main-grid">
+
+
+        <!-- =====================================================
+             LEFT SIDE — BOOKING REQUEST
+             ===================================================== -->
+        <article class="review-panel booking-request-panel">
+
+            <div class="request-heading">
+
+                <div class="request-heading-icon">
+                    👥
+                </div>
+
+                <div class="request-heading-text">
+
+                    <div class="request-title-row">
+
+                        <h2 th:text="${r.booking.course != null
+                            ? r.booking.course.code + ' – ' + r.booking.type
+                            : 'ECA – ' + r.booking.type}">
+                            ECA – ECA
+                        </h2>
+
+                        <span class="review-status pending">
+                            PENDING
+                        </span>
+
+                    </div>
+
+                    <p>
+                        Requested by
+                        <strong th:text="${r.booking.requester.name}">
+                            Ana Singh
+                        </strong>
+                    </p>
+
+                    <span class="request-role"
+                          th:text="${r.booking.requester.role}">
+                        STUDENT
+                    </span>
+
+                </div>
+
             </div>
-            <div class="score">
-                <strong th:text="${r.displayScore}"></strong>
-                <span>approval score</span>
+
+
+            <!-- BOOKING INFORMATION -->
+            <div class="request-info-grid">
+
+
+                <!-- DATE -->
+                <div class="request-info-card">
+
+                    <div class="request-info-icon">
+                        📅
+                    </div>
+
+                    <div>
+                        <small>Date</small>
+
+                        <strong th:text="${r.booking.date}">
+                            2026-09-21
+                        </strong>
+                    </div>
+
+                </div>
+
+
+                <!-- TIME -->
+                <div class="request-info-card">
+
+                    <div class="request-info-icon">
+                        🕒
+                    </div>
+
+                    <div>
+                        <small>Time</small>
+
+                        <strong th:text="${r.booking.startTime}
+                            + ' – ' +
+                            ${r.booking.endTime}">
+                            14:00 – 16:00
+                        </strong>
+                    </div>
+
+                </div>
+
+
+                <!-- ROOM -->
+                <div class="request-info-card">
+
+                    <div class="request-info-icon">
+                        🏫
+                    </div>
+
+                    <div>
+                        <small>Room</small>
+
+                        <strong th:text="${r.booking.room.code}">
+                            ICT-LAB-3
+                        </strong>
+
+                        <span th:text="${r.booking.room.name}">
+                            Computer Laboratory
+                        </span>
+                    </div>
+
+                </div>
+
+
+                <!-- EXPECTED STUDENTS -->
+                <div class="request-info-card">
+
+                    <div class="request-info-icon">
+                        👥
+                    </div>
+
+                    <div>
+                        <small>Expected Students</small>
+
+                        <strong th:text="${r.booking.expectedStudents}">
+                            30
+                        </strong>
+                    </div>
+
+                </div>
+
             </div>
+
+
+            <!-- PURPOSE -->
+            <div class="request-purpose">
+
+                <div class="purpose-icon">
+                    📄
+                </div>
+
+                <div>
+                    <small>Purpose / Description</small>
+
+                    <strong th:text="${r.booking.purpose}">
+                        Booking purpose
+                    </strong>
+                </div>
+
+            </div>
+
+
+            <!-- ADDITIONAL REQUIREMENTS -->
+            <div class="request-requirements">
+
+                <h3>Additional Requirements</h3>
+
+                <div class="requirements-list">
+
+                    <span th:each="facility :
+                        ${r.booking.requiredFacilities}"
+                          class="requirement-item">
+
+                        <span class="requirement-check">
+                            ✓
+                        </span>
+
+                        <span th:text="${facility}">
+                            PROJECTOR
+                        </span>
+
+                    </span>
+
+
+                    <span th:if="${#lists.isEmpty(
+                        r.booking.requiredFacilities)}"
+                          class="no-requirements">
+
+                        No additional facilities requested.
+
+                    </span>
+
+                </div>
+
+            </div>
+
+        </article>
+
+
+        <!-- =====================================================
+             RIGHT SIDE
+             ===================================================== -->
+        <div class="review-right-column">
+
+
+            <!-- =================================================
+                 SYSTEM RECOMMENDATION
+                 ================================================= -->
+            <article class="review-panel system-recommendation-panel">
+
+                <div class="recommendation-header">
+
+                    <div>
+                        <h3>
+                            ✦ System Recommendation
+                        </h3>
+
+                        <p>
+                            Based on room availability, fairness
+                            and suitability rules.
+                        </p>
+                    </div>
+
+
+                    <!-- RECOMMENDATION SCORE -->
+                    <div class="recommendation-score">
+
+                        <strong th:text="${r.displayScore}">
+                            66.4
+                        </strong>
+
+                        <span>Recommendation Score</span>
+
+                    </div>
+
+                </div>
+
+
+                <!-- VALID / INVALID RESULT -->
+                <div class="recommendation-message"
+                     th:classappend="${r.valid}
+                        ? ' recommendation-valid'
+                        : ' recommendation-invalid'">
+
+                    <span class="recommendation-message-icon"
+                          th:text="${r.valid} ? '✓' : '!'">
+                        ✓
+                    </span>
+
+                    <div>
+
+                        <strong th:text="${r.valid}
+                            ? 'Booking can be considered for approval'
+                            : 'Booking cannot be approved normally'">
+                            Booking status
+                        </strong>
+
+                        <p th:text="${r.explanation}">
+                            System recommendation explanation.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <!-- CLEAR NEXT ACTION -->
+                <div class="decision-recommendation-banner"
+                     th:if="${!r.valid}"
+                     th:classappend="${r.suggestedAlternative !=
+                        'No suitable alternative found'}
+                        ? ' decision-recommendation-warning'
+                        : ' decision-recommendation-danger'">
+
+                    <div class="decision-recommendation-icon">
+                        ⚠
+                    </div>
+
+                    <div>
+
+                        <small>RECOMMENDED NEXT ACTION</small>
+
+                        <strong th:if="${r.suggestedAlternative !=
+                            'No suitable alternative found'}">
+                            Suggest an alternative
+                        </strong>
+
+                        <strong th:if="${r.suggestedAlternative ==
+                            'No suitable alternative found'}">
+                            Review for rejection
+                        </strong>
+
+                        <p th:if="${r.suggestedAlternative !=
+                            'No suitable alternative found'}">
+                            This request cannot be approved in its
+                            current form, but the system has found
+                            a suitable alternative.
+                        </p>
+
+                        <p th:if="${r.suggestedAlternative ==
+                            'No suitable alternative found'}">
+                            This request cannot be approved in its
+                            current form and no suitable alternative
+                            is currently available.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </article>
+
+
+            <!-- =================================================
+                 BEST AVAILABLE ALTERNATIVE
+                 ================================================= -->
+            <article class="review-panel best-alternative-panel">
+
+
+                <!-- ALTERNATIVE EXISTS -->
+                <div th:if="${r.suggestedAlternative
+                    != 'No suitable alternative found'}">
+
+                    <div class="alternative-heading">
+
+                        <div>
+                            <h3>
+                                ↔ Best Available Alternative
+                            </h3>
+
+                            <p>
+                                A suitable alternative is available
+                                if this request cannot be approved.
+                            </p>
+                        </div>
+
+                    </div>
+
+
+                    <div class="alternative-room-card">
+
+                        <div class="alternative-room-icon">
+                            🏫
+                        </div>
+
+                        <div class="alternative-room-details">
+
+                            <small>
+                                Recommended alternative
+                            </small>
+
+                            <strong th:text="${r.suggestedAlternative}">
+                                ICT-LAB-2
+                            </strong>
+
+                            <span>
+                                This option satisfies the current
+                                booking constraints.
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- NO ALTERNATIVE EXISTS -->
+                <div class="no-alternative-state"
+                     th:if="${r.suggestedAlternative
+                        == 'No suitable alternative found'}">
+
+                    <div class="alternative-heading">
+
+                        <div>
+                            <h3>
+                                ⚠ No Alternative Available
+                            </h3>
+
+                            <p>
+                                No suitable room or time is currently
+                                available for this request.
+                            </p>
+                        </div>
+
+                    </div>
+
+
+                    <div class="no-alternative-message">
+
+                        <span class="no-alternative-icon">
+                            !
+                        </span>
+
+                        <div>
+
+                            <strong>
+                                No suitable alternative found
+                            </strong>
+
+                            <p>
+                                The system checked available alternatives,
+                                but none currently satisfy the booking
+                                constraints.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </article>
+
+
+            <!-- =================================================
+                 ADMIN ACTIONS
+                 ================================================= -->
+            <article class="review-panel admin-actions-panel">
+
+                <div class="admin-actions-heading">
+
+                    <div class="admin-actions-icon">
+                        🔨
+                    </div>
+
+                    <div>
+                        <h3>Admin Actions</h3>
+
+                        <p>
+                            Choose how this booking request
+                            should be handled.
+                        </p>
+                    </div>
+
+                </div>
+
+
+                <div class="admin-action-fields">
+
+
+                    <!-- =========================================
+                         APPROVE
+                         ========================================= -->
+                    <form th:action="@{'/admin/approvals/'
+                            + ${r.booking.id}
+                            + '/approve'}"
+                          method="post"
+                          class="admin-decision-form">
+
+                        <label>
+                            Optional approval note
+                        </label>
+
+                        <input type="text"
+                               name="reason"
+                               placeholder="Add a note (optional)..."
+                               th:disabled="${!r.valid}">
+
+
+                        <button type="submit"
+                                class="admin-action-btn approve"
+                                th:disabled="${!r.valid}">
+                            ✓ Approve
+                        </button>
+
+
+                        <p class="action-unavailable-note"
+                           th:if="${!r.valid}">
+
+                            Normal approval is unavailable because
+                            this request fails a required booking rule.
+
+                        </p>
+
+                    </form>
+
+
+                    <!-- =========================================
+                         REJECT
+                         ========================================= -->
+                    <form th:action="@{'/admin/approvals/'
+                            + ${r.booking.id}
+                            + '/reject'}"
+                          method="post"
+                          class="admin-decision-form">
+
+                        <label>
+                            Reason for rejection
+                            <span>
+                                (required if rejecting)
+                            </span>
+                        </label>
+
+
+                        <input type="text"
+                               name="reason"
+                               placeholder="Enter reason for rejection..."
+                               required>
+
+
+                        <button type="submit"
+                                class="admin-action-btn reject">
+                            ✕ Reject
+                        </button>
+
+                    </form>
+
+
+                    <!-- =========================================
+                         SUGGEST ALTERNATIVE
+                         ========================================= -->
+                    <form th:action="@{'/admin/approvals/'
+                            + ${r.booking.id}
+                            + '/suggest-alternative'}"
+                          method="post"
+                          class="suggest-alternative-form">
+
+
+                        <button type="submit"
+                                class="admin-action-btn alternative"
+                                th:disabled="${r.suggestedAlternative
+                                    == 'No suitable alternative found'}">
+
+                            ↪ Suggest Alternative
+
+                        </button>
+
+
+                        <p class="alternative-unavailable-note"
+                           th:if="${r.suggestedAlternative
+                                == 'No suitable alternative found'}">
+
+                            No valid alternative is currently available.
+
+                        </p>
+
+                    </form>
+
+                </div>
+
+            </article>
+
         </div>
-        <div class="score-grid">
-            <span>Valid <b th:text="${r.valid?'YES':'NO'}"></b></span>
-            <span>Priority <b th:text="${r.priorityLevel==2?'ACADEMIC':'ECA'}"></b></span>
-            <span>Course need <b th:text="${#numbers.formatDecimal(r.courseNeed,1,0)}+'%'"></b></span>
-            <span>Time fairness <b th:text="${#numbers.formatDecimal(r.timeFairness,1,0)}+'%'"></b></span>
-            <span>Room fairness <b th:text="${#numbers.formatDecimal(r.roomFairness,1,0)}+'%'"></b></span>
-            <span>Suitability <b th:text="${#numbers.formatDecimal(r.suitability,1,0)}+'%'"></b></span>
-        </div>
-        <p class="explain" th:text="${r.explanation}"></p>
-        <p><b>Best alternative:</b> <span th:text="${r.suggestedAlternative}"></span></p>
-        <div class="buttons">
-            <form th:action="@{'/admin/approvals/'+${r.booking.id}+'/approve'}" method="post">
-                <input name="reason" placeholder="Optional decision reason">
-                <button class="btn primary" th:disabled="${!r.valid}">Approve</button>
-            </form>
-            <form th:action="@{'/admin/approvals/'+${r.booking.id}+'/reject'}" method="post">
-                <input name="reason" placeholder="Rejection reason" required>
-                <button class="btn danger">Reject</button>
-            </form>
-        </div>
-    </article>
-    <section class="panel">
-        <h2>Administrative override</h2>
-        <p>Only configured quota rules (course/lecturer/prime-time limits) may be overridden. Safety, access, maintenance, facility, timetable and double-booking rules remain non-overridable.</p>
-        <form th:action="@{'/admin/approvals/'+${focus.id}+'/override'}" method="post" class="inline-form">
-            <input name="reason" placeholder="Mandatory override reason" required>
-            <button class="btn warning">Approve with logged override</button>
-        </form>
+
     </section>
+
+
+    <!-- =========================================================
+         DECISION DETAILS
+         ========================================================= -->
+    <details class="review-expand-card" open>
+
+        <summary>
+            <span>📊</span>
+            Decision details &amp; recommendation
+        </summary>
+
+
+        <div class="review-expand-content"
+             th:with="r=${recommendations[0]}">
+
+
+            <!-- CLEAR RECOMMENDATION -->
+            <div class="decision-recommendation-banner"
+                 th:classappend="${r.valid}
+                    ? ' decision-recommendation-valid'
+                    : ' decision-recommendation-warning'">
+
+                <div class="decision-recommendation-icon"
+                     th:text="${r.valid ? '✓' : '⚠'}">
+                    ⚠
+                </div>
+
+                <div>
+
+                    <small>SYSTEM RECOMMENDATION</small>
+
+                    <strong th:text="${r.valid}
+                        ? 'This booking can be considered for approval'
+                        : (r.suggestedAlternative !=
+                            'No suitable alternative found'
+                            ? 'Suggest an alternative'
+                            : 'This booking cannot be approved normally')}">
+                        Suggest an alternative
+                    </strong>
+
+
+                    <p th:if="${r.valid}">
+                        The request satisfies the required booking
+                        rules. Review the decision factors below
+                        before approving it.
+                    </p>
+
+
+                    <p th:if="${!r.valid
+                            and r.suggestedAlternative !=
+                            'No suitable alternative found'}">
+                        This request fails a required booking rule
+                        in its current form. A suitable alternative
+                        is available, so suggesting the alternative
+                        is the recommended next action.
+                    </p>
+
+
+                    <p th:if="${!r.valid
+                            and r.suggestedAlternative ==
+                            'No suitable alternative found'}">
+                        This request fails a required booking rule
+                        and no suitable alternative is currently
+                        available. Review the system explanation
+                        before deciding whether to reject the request.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <!-- WHY VALID / INVALID -->
+            <div class="decision-validity-box"
+                 th:classappend="${r.valid}
+                    ? ' decision-validity-valid'
+                    : ' decision-validity-invalid'">
+
+                <div>
+                    <span class="decision-validity-icon"
+                          th:text="${r.valid ? '✓' : '✕'}">
+                        ✕
+                    </span>
+                </div>
+
+                <div>
+
+                    <strong th:text="${r.valid
+                        ? 'Valid for normal approval'
+                        : 'Not valid for normal approval'}">
+                        Not valid for normal approval
+                    </strong>
+
+                    <p th:text="${r.explanation}">
+                        System explanation
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <!-- DECISION METRICS -->
+            <div class="decision-metrics">
+
+
+                <!-- VALID -->
+                <div>
+
+                    <span>Valid</span>
+
+                    <strong th:text="${r.valid ? 'YES' : 'NO'}">
+                        NO
+                    </strong>
+
+                    <small>
+                        Whether all required booking rules
+                        are satisfied.
+                    </small>
+
+                </div>
+
+
+                <!-- PRIORITY -->
+                <div>
+
+                    <span>Priority</span>
+
+                    <strong th:text="${r.priorityLevel == 2
+                        ? 'ACADEMIC'
+                        : 'ECA'}">
+                        ECA
+                    </strong>
+
+                    <small>
+                        Academic LAB/TUTORIAL requests receive
+                        higher priority than ECA requests.
+                    </small>
+
+                </div>
+
+
+                <!-- COURSE NEED -->
+                <div>
+
+                    <span>Course Need</span>
+
+                    <strong th:text="${#numbers.formatDecimal(
+                        r.courseNeed,1,0)} + '%'">
+                        50%
+                    </strong>
+
+                    <small>
+                        Indicates how strongly the course requires
+                        the requested booking.
+                    </small>
+
+                </div>
+
+
+                <!-- TIME FAIRNESS -->
+                <div>
+
+                    <span>Time Fairness</span>
+
+                    <strong th:text="${#numbers.formatDecimal(
+                        r.timeFairness,1,0)} + '%'">
+                        100%
+                    </strong>
+
+                    <small>
+                        Measures fairness in the allocation
+                        of requested time slots.
+                    </small>
+
+                </div>
+
+
+                <!-- ROOM FAIRNESS -->
+                <div>
+
+                    <span>Room Fairness</span>
+
+                    <strong th:text="${#numbers.formatDecimal(
+                        r.roomFairness,1,0)} + '%'">
+                        100%
+                    </strong>
+
+                    <small>
+                        Measures fairness in how room access
+                        is distributed.
+                    </small>
+
+                </div>
+
+
+                <!-- SUITABILITY -->
+                <div>
+
+                    <span>Suitability</span>
+
+                    <strong th:text="${#numbers.formatDecimal(
+                        r.suitability,1,0)} + '%'">
+                        76%
+                    </strong>
+
+                    <small>
+                        Shows how well the room matches
+                        the booking requirements.
+                    </small>
+
+                </div>
+
+            </div>
+
+
+            <!-- DECISION ORDER -->
+            <div class="decision-order-box">
+
+                <strong>
+                    How the system makes its recommendation
+                </strong>
+
+                <p>
+                    Hard constraints →
+                    LAB/TUTORIAL &gt; ECA →
+                    Course need →
+                    Time fairness →
+                    Room fairness →
+                    Capacity/suitability →
+                    Alternative availability.
+                </p>
+
+                <small>
+                    Hard constraints are checked first.
+                    The remaining factors help the administrator
+                    compare competing valid requests fairly.
+                </small>
+
+            </div>
+
+        </div>
+
+    </details>
+
+
+    <!-- =========================================================
+         ADMINISTRATIVE OVERRIDE
+         ========================================================= -->
+    <details class="review-expand-card admin-override">
+
+        <summary>
+            <span>🛡</span>
+            Administrative Override — Exceptional Use Only
+        </summary>
+
+
+        <div class="review-expand-content"
+             th:with="r=${recommendations[0]}">
+
+
+            <!-- OVERRIDE WARNING -->
+            <div class="override-warning-box">
+
+                <div class="override-warning-icon">
+                    🛡
+                </div>
+
+                <div>
+
+                    <strong>
+                        Use an override only for an eligible quota rule
+                    </strong>
+
+                    <p>
+                        An administrative override is an exceptional
+                        action. It may only bypass configured quota
+                        restrictions.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <!-- PROTECTED RULES -->
+            <div class="override-protected-rules">
+
+                <strong>
+                    🔒 The following rules cannot be overridden:
+                </strong>
+
+                <div class="override-rule-tags">
+
+                    <span>Safety</span>
+
+                    <span>Access</span>
+
+                    <span>Maintenance</span>
+
+                    <span>Facility requirements</span>
+
+                    <span>Timetable conflicts</span>
+
+                    <span>Double-booking</span>
+
+                </div>
+
+            </div>
+
+
+            <!-- INVALID GUIDANCE -->
+            <p class="override-guidance"
+               th:if="${!r.valid}">
+
+                <strong>Important:</strong>
+
+                This booking is currently marked as not valid
+                for normal approval. Check the system explanation
+                above before attempting an override.
+
+                If the failure is a protected hard constraint,
+                the system will not allow the override.
+
+            </p>
+
+
+            <!-- VALID GUIDANCE -->
+            <p class="override-guidance"
+               th:if="${r.valid}">
+
+                This booking already satisfies the required booking
+                rules. A normal approval should usually be used
+                instead of an administrative override.
+
+            </p>
+
+
+            <!-- OVERRIDE FORM -->
+            <form th:action="@{'/admin/approvals/'
+                    + ${focus.id}
+                    + '/override'}"
+                  method="post"
+                  class="override-form">
+
+
+                <div class="override-reason-field">
+
+                    <label for="overrideReason">
+                        Mandatory override reason
+                    </label>
+
+
+                    <input id="overrideReason"
+                           type="text"
+                           name="reason"
+                           placeholder="Explain why this exceptional override is required..."
+                           required>
+
+
+                    <small>
+                        This reason will be recorded for
+                        accountability and audit purposes.
+                    </small>
+
+                </div>
+
+
+                <button type="submit"
+                        class="override-button"
+                        onclick="return confirm(
+                            'Administrative overrides are exceptional actions. Continue with this override?'
+                        );">
+
+                    🛡 Approve with Override
+
+                </button>
+
+            </form>
+
+        </div>
+
+    </details>
+
 </main>
+
 </body>
+
 </html>
