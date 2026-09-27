@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Profile & Timetable')}"></head>
+<body>
+<nav th:replace="~{fragments :: nav}"></nav>
+<main class="container">
+    <div th:replace="~{fragments :: alerts}"></div>
+    <section class="page-head">
+        <div>
+            <p class="eyebrow">AVAILABILITY PROFILE</p>
+            <h1 th:text="${user.name}"></h1>
+            <p th:text="${user.userCode}+' · '+${user.email}+' · '+${user.role}+' · '+${user.department}"></p>
+        </div>
+    </section>
+    <div class="grid-2">
+        <section class="panel">
+            <h2>Assigned courses</h2>
+            <div th:if="${#lists.isEmpty(courses)}" class="empty">No assigned lecturer courses.</div>
+            <div class="chips">
+                <span class="chip" th:each="c:${courses}" th:text="${c.code}+' · '+${c.name}"></span>
+            </div>
+        </section>
+        <section class="panel">
+            <h2>Add timetable / busy time</h2>
+            <form th:action="@{/profile/schedule}" th:object="${scheduleForm}" method="post" class="form-grid compact">
+                <label>Date<input type="date" th:field="*{date}" required></label>
+                <label>Busy-time type<select th:field="*{title}" required>
+                    <option value="">Select type</option>
+                    <option th:each="c:${courses}" th:value="${c.code}+' Lecture'" th:text="${c.code}+' · Lecture'"></option>
+                    <option value="Staff meeting">Staff meeting</option>
+                    <option value="Consultation">Consultation</option>
+                    <option value="Assessment / marking">Assessment / marking</option>
+                    <option value="Unavailable">Other unavailable time</option>
+                </select></label>
+                <label>Start<input type="time" th:field="*{startTime}" required></label>
+                <label>End<input type="time" th:field="*{endTime}" required></label>
+                <div class="span-2"><button class="btn primary">Add busy time</button></div>
+            </form>
+        </section>
+    </div>
+    <section class="panel table-wrap">
+        <h2>My timetable / busy entries</h2>
+        <table>
+            <thead><tr><th>Date</th><th>Time</th><th>Title</th><th></th></tr></thead>
+            <tbody>
+            <tr th:each="s:${entries}">
+                <td th:text="${s.date}"></td>
+                <td th:text="${s.startTime}+'–'+${s.endTime}"></td>
+                <td th:text="${s.title}"></td>
+                <td>
+                    <form th:action="@{'/profile/schedule/'+${s.id}+'/delete'}" method="post">
+                        <button class="btn danger small-btn">Remove</button>
+                    </form>
+                </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(entries)}">
+                <td colspan="4" class="empty">No timetable entries. Add your lecture/busy times so booking clashes can be blocked.</td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+</main>
+</body>
+</html>
