@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments :: head('Review Booking Request')}"></head>
+
+<body>
+
+<nav th:replace="~{fragments :: nav}"></nav>
+
+<main class="container booking-review-page">
+
+    <div th:replace="~{fragments :: alerts}"></div>
+
+    <!-- This header is deliberately outside all recommendation conditions.
+         If it appears, the correct template is being rendered. -->
+    <section class="review-page-header">
+        <div>
+            <p class="review-breadcrumb">
+                Approvals <span>›</span> Review Booking Request
+            </p>
+            <h1>Review Booking Request</h1>
+            <p class="review-subtitle">
+                Check the request details, review the system recommendation and choose an action.
+            </p>
+        </div>
+
+        <a class="review-back-btn" th:href="@{/admin/approvals}">
+            ← Back to Approvals
+        </a>
+    </section>
+
+    <!-- Controller/service error -->
+    <div class="alert error"
+         th:if="${reviewError != null}"
+         th:text="${reviewError}">
+        Unable to calculate the booking recommendation.
+    </div>
+
+    <!-- Safe empty state -->
+    <section class="review-panel booking-request-panel"
+             th:if="${reviewError == null and (recommendations == null or recommendations.isEmpty())}">
+        <div class="request-heading-text">
+            <h2>No recommendation available</h2>
+            <p>
+                The booking was loaded, but the system did not produce an approval recommendation.
+            </p>
+        </div>
+    </section>
+
+    <!-- One card for each competing request -->
+    <section class="review-main-grid"
+             th:each="r : ${recommendations}"
+             th:if="${r != null and r.booking != null}">
+
+        <!-- LEFT: REQUEST -->
+        <article class="review-panel booking-request-panel">
+
+            <div class="request-heading">
+                <div class="request-heading-icon">👥</div>
+
+                <div class="request-heading-text">
+
+                    <div class="request-title-row">
+                        <h2>
+                            <span th:if="${r.booking.course != null}"
+                                  th:text="${r.booking.course.code}">CS314</span>
+
+                            <span th:if="${r.booking.course == null}">ECA</span>
+
+                            <span> – </span>
+
+                            <span th:text="${r.booking.type != null ? r.booking.type : 'UNKNOWN'}">
+                                LAB
+                            </span>
+                        </h2>
+
+                        <span class="review-status pending"
+                              th:text="${r.booking.status != null ? r.booking.status : 'PENDING'}">
+                            PENDING
+                        </span>
+                    </div>
+
+                    <p>
+                        Requested by
+                        <strong th:text="${r.booking.requester != null ? r.booking.requester.name : 'Unknown user'}">
+                            Requester
+                        </strong>
+                    </p>
+
+                    <span class="request-role"
+                          th:text="${r.booking.requester != null and r.booking.requester.role != null
+                                   ? r.booking.requester.role
+                                   : 'UNKNOWN'}">
+                        LECTURER
+                    </span>
+
+                </div>
+            </div>
+
+            <div class="request-info-grid">
+
+                <div class="request-info-card">
+                    <div class="request-info-icon">📅</div>
+                    <div>
+                        <small>Date</small>
+                        <strong th:text="${r.booking.date != null ? r.booking.date : '—'}">
+                            2026-09-27
+                        </strong>
+                    </div>
+                </div>
+
+                <div class="request-info-card">
+                    <div class="request-info-icon">🕒</div>
+                    <div>
+                        <small>Time</small>
+                        <strong>
+                            <span th:text="${r.booking.startTime != null ? r.booking.startTime : '—'}">
+                                10:00
+                            </span>
+                            <span> – </span>
+                            <span th:text="${r.booking.endTime != null ? r.booking.endTime : '—'}">
+                                12:00
+                            </span>
+                        </strong>
+                    </div>
+                </div>
+
+                <div class="request-info-card">
+                    <div class="request-info-icon">🏫</div>
+                    <div>
+                        <small>Room</small>
+                        <strong th:text="${r.booking.room != null ? r.booking.room.code : 'No room'}">
+                            ICT-LAB-1
+                        </strong>
+                        <span th:if="${r.booking.room != null}"
+                              th:text="${r.booking.room.name}">
+                            Computer Laboratory
+                        </span>
+                    </div>
+                </div>
+
+                <div class="request-info-card">
+                    <div class="request-info-icon">👥</div>
+                    <div>
+                        <small>Expected Students</small>
+                        <strong th:text="${r.booking.expectedStudents}">
+                            30
+                        </strong>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="request-purpose">
+                <div class="purpose-icon">📄</div>
+                <div>
+                    <small>Purpose / Description</small>
+                    <strong th:text="${r.booking.purpose != null and !r.booking.purpose.isBlank()
+                                     ? r.booking.purpose
+                                     : 'No description supplied'}">
+                        Booking purpose
+                    </strong>
+                </div>
+            </div>
+
+            <div class="request-requirements">
+                <h3>Required Facilities</h3>
+
+                <div class="requirements-list">
+                    <span class="requirement-item"
+                          th:each="facility : ${r.booking.requiredFacilities}">
+                        <span class="requirement-check">✓</span>
+                        <span th:text="${facility}">PROJECTOR</span>
+                    </span>
+                </div>
+            </div>
+
+        </article>
+
+        <!-- RIGHT: RECOMMENDATION + ACTIONS -->
+        <div class="review-right-column">
+
+            <article class="review-panel system-recommendation-panel">
+
+                <div class="recommendation-header">
+                    <div>
+                        <h3>✦ System Recommendation</h3>
+                        <p>Based on hard constraints, fairness and room suitability.</p>
+                    </div>
+
+                    <div class="recommendation-score">
+                        <strong th:text="${r.displayScore}">0</strong>
+                        <span>Recommendation Score</span>
+                    </div>
+                </div>
+
+                <div class="recommendation-message"
+                     th:classappend="${r.valid ? ' recommendation-valid' : ' recommendation-invalid'}">
+
+                    <span class="recommendation-message-icon"
+                          th:text="${r.valid ? '✓' : '!'}">
+                        ✓
+                    </span>
+
+                    <div>
+                        <strong th:text="${r.valid
+                                         ? 'Booking can be considered for approval'
+                                         : 'Booking cannot be approved normally'}">
+                            Booking status
+                        </strong>
+
+                        <p th:text="${r.explanation != null ? r.explanation : 'No explanation available.'}">
+                            Explanation
+                        </p>
+                    </div>
+
+                </div>
+
+                <div class="decision-metrics">
+
+                    <div>
+                        <span>Valid</span>
+                        <strong th:text="${r.valid ? 'YES' : 'NO'}">YES</strong>
+                    </div>
+
+                    <div>
+                        <span>Priority</span>
+                        <strong th:text="${r.priorityLevel == 2 ? 'ACADEMIC' : 'ECA'}">
+                            ACADEMIC
+                        </strong>
+                    </div>
+
+                    <div>
+                        <span>Course Need</span>
+                        <strong th:text="${r.courseNeed + '%'}">0%</strong>
+                    </div>
+
+                    <div>
+                        <span>Time Fairness</span>
+                        <strong th:text="${r.timeFairness + '%'}">0%</strong>
+                    </div>
+
+                    <div>
+                        <span>Room Fairness</span>
+                        <strong th:text="${r.roomFairness + '%'}">0%</strong>
+                    </div>
+
+                    <div>
+                        <span>Suitability</span>
+                        <strong th:text="${r.suitability + '%'}">0%</strong>
+                    </div>
+
+                </div>
+
+            </article>
+
+            <article class="review-panel best-alternative-panel"
+                     th:if="${r.suggestedAlternative != null
+                             and r.suggestedAlternative != 'Alternative not required'}">
+
+                <div class="alternative-heading">
+                    <div>
+                        <h3>↔ Best Available Alternative</h3>
+                        <p th:text="${r.suggestedAlternative}">
+                            No suitable alternative found
+                        </p>
+                    </div>
+                </div>
+
+            </article>
+
+            <article class="review-panel admin-actions-panel">
+
+                <div class="admin-actions-heading">
+                    <div class="admin-actions-icon">🔨</div>
+                    <div>
+                        <h3>Admin Actions</h3>
+                        <p>Choose how this booking request should be handled.</p>
+                    </div>
+                </div>
+
+                <div class="admin-action-fields">
+
+                    <form class="admin-decision-form"
+                          method="post"
+                          th:action="@{/admin/approvals/{id}/approve(id=${r.booking.id})}">
+
+                        <label>Optional approval note</label>
+
+                        <input type="text"
+                               name="reason"
+                               placeholder="Add a note (optional)..."
+                               th:disabled="${!r.valid}">
+
+                        <button type="submit"
+                                class="admin-action-btn approve"
+                                th:disabled="${!r.valid}">
+                            ✓ Approve
+                        </button>
+
+                        <p class="action-unavailable-note"
+                           th:if="${!r.valid}">
+                            Normal approval is unavailable because this request fails a required rule.
+                        </p>
+
+                    </form>
+
+                    <form class="admin-decision-form"
+                          method="post"
+                          th:action="@{/admin/approvals/{id}/reject(id=${r.booking.id})}">
+
+                        <label>Reason for rejection</label>
+
+                        <input type="text"
+                               name="reason"
+                               placeholder="Enter reason for rejection..."
+                               required>
+
+                        <button type="submit" class="admin-action-btn reject">
+                            ✕ Reject
+                        </button>
+
+                    </form>
+
+                    <form class="suggest-alternative-form"
+                          method="post"
+                          th:if="${r.suggestedAlternative != null
+                                  and r.suggestedAlternative != 'No suitable alternative found'
+                                  and r.suggestedAlternative != 'Alternative not required'}"
+                          th:action="@{/admin/approvals/{id}/suggest-alternative(id=${r.booking.id})}">
+
+                        <button type="submit" class="admin-action-btn alternative">
+                            ↪ Suggest Alternative
+                        </button>
+
+                    </form>
+
+                </div>
+
+            </article>
+
+            <details class="review-expand-card admin-override">
+                <summary>
+                    <span>🛡</span>
+                    Administrative Override — Exceptional Use Only
+                </summary>
+
+                <div class="review-expand-content">
+
+                    <p class="override-guidance">
+                        Overrides are intended only for eligible quota restrictions.
+                        Safety, access, maintenance, facility, timetable and double-booking rules
+                        remain protected.
+                    </p>
+
+                    <form class="override-form"
+                          method="post"
+                          th:action="@{/admin/approvals/{id}/override(id=${r.booking.id})}">
+
+                        <div class="override-reason-field">
+                            <label>Mandatory override reason</label>
+
+                            <input type="text"
+                                   name="reason"
+                                   placeholder="Explain why this exceptional override is required..."
+                                   required>
+                        </div>
+
+                        <button type="submit"
+                                class="override-button"
+                                onclick="return confirm('Administrative overrides are exceptional actions. Continue?');">
+                            🛡 Approve with Override
+                        </button>
+
+                    </form>
+
+                </div>
+            </details>
+
+        </div>
+
+    </section>
+
+</main>
+
+</body>
+</html>
