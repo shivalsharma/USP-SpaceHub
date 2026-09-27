@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Administration')}"></head>
+<body>
+<nav th:replace="~{fragments :: nav}"></nav>
+<main class="container">
+    <div th:replace="~{fragments :: alerts}"></div>
+    <section class="page-head">
+        <div>
+            <p class="eyebrow">ADMINISTRATION</p>
+            <h1>System control centre</h1>
+            <p>Manage data, review booking conflicts, configure policy, and inspect accountability records.</p>
+        </div>
+    </section>
+    <section class="stats">
+        <div class="stat"><span>Users</span><strong th:text="${userCount}"></strong></div>
+        <div class="stat"><span>Rooms</span><strong th:text="${roomCount}"></strong></div>
+        <div class="stat"><span>Courses</span><strong th:text="${courseCount}"></strong></div>
+        <div class="stat"><span>Pending approvals</span><strong th:text="${pendingCount}"></strong></div>
+    </section>
+    <section class="admin-grid">
+        <a class="admin-card" th:href="@{/admin/bookings}"><b>Booking administration</b><span>Review history, cancellations, and manual reallocation suggestions.</span></a>
+        <a class="admin-card" th:href="@{/admin/approvals}"><b>Approval & conflict management</b><span>Rank competing requests, approve, reject, or override eligible quota rules.</span></a>
+        <a class="admin-card" th:href="@{/admin/users}"><b>User management</b><span>RBAC, password reset, edit, disable and reactivate.</span></a>
+        <a class="admin-card" th:href="@{/admin/rooms}"><b>Room management</b><span>Capacity, computers, facilities, access rules, operational status and maintenance.</span></a>
+        <a class="admin-card" th:href="@{/admin/courses}"><b>Course management</b><span>Roll, lecturers, required facilities and booking quotas.</span></a>
+        <a class="admin-card" th:href="@{/admin/settings}"><b>System settings</b><span>Booking hours, prime time, quotas, search weights and reminders.</span></a>
+        <a class="admin-card" th:href="@{/admin/reports}"><b>Reports</b><span>Room utilization and booking history with CSV export.</span></a>
+        <a class="admin-card" th:href="@{/admin/audit}"><b>Audit log</b><span>Trace bookings, recommendations, decisions, alternatives and overrides.</span></a>
+    </section>
+</main>
+</body>
+</html>

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Room form')}"></head>
+<body>
+<nav th:replace="~{fragments :: nav}"></nav>
+<main class="container">
+    <div th:replace="~{fragments :: alerts}"></div>
+    <section class="page-head">
+        <div>
+            <p class="eyebrow">ROOM CONFIGURATION</p>
+            <h1 th:text="${form.id==null}?'Add room':'Edit room'"></h1>
+        </div>
+    </section>
+    <form th:action="@{/admin/rooms/save}" th:object="${form}" method="post" class="panel form-grid">
+        <input type="hidden" th:field="*{id}">
+        <label>Room code<input th:field="*{code}" required></label>
+        <label>Name<input th:field="*{name}" required></label>
+        <label>Building<select th:field="*{building}" required><option value="">Select building</option><option th:each="b:${buildings}" th:value="${b}" th:text="${b}"></option></select></label>
+        <label>Capacity<input type="number" min="1" th:field="*{capacity}" required></label>
+        <label>Total computers<input type="number" min="0" th:field="*{computerCount}"></label>
+        <label>Operational computers<input type="number" min="0" th:field="*{operationalComputers}"></label>
+        <label>Access<select th:field="*{accessLevel}"><option th:each="a:${accessLevels}" th:value="${a}" th:text="${#strings.replace(a.name(),'_',' ')}"></option></select></label>
+        <label>Status<select th:field="*{status}"><option th:each="s:${roomStatuses}" th:value="${s}" th:text="${s}"></option></select></label>
+        <fieldset class="span-2 choice-section">
+            <legend>Core equipment</legend>
+            <div class="choice-grid">
+                <label class="choice"><input type="checkbox" th:field="*{projectorAvailable}"><span>Projector available</span></label>
+                <label class="choice"><input type="checkbox" th:field="*{projectorOperational}"><span>Projector operational</span></label>
+                <label class="choice"><input type="checkbox" th:field="*{whiteboardAvailable}"><span>Whiteboard available</span></label>
+                <label class="choice"><input type="checkbox" th:field="*{whiteboardOperational}"><span>Whiteboard operational</span></label>
+            </div>
+        </fieldset>
+        <label>Department restriction<select th:field="*{departmentRestriction}"><option value="">No restriction</option><option th:each="d:${departments}" th:value="${d}" th:text="${#strings.replace(d,'_',' ')}"></option></select></label>
+        <label>Course restriction<select th:field="*{courseRestriction}"><option value="">No restriction</option><option th:each="c:${courseOptions}" th:value="${c.code}" th:text="${c.code}+' · '+${c.name}"></option></select></label>
+        <fieldset class="span-2 choice-section">
+            <legend>Other facilities</legend>
+            <input type="hidden" th:field="*{facilitiesCsv}" id="facilitiesCsv">
+            <div class="choice-grid" data-choice-group="facilitiesCsv">
+                <label class="choice" th:each="f:${facilityOptions}">
+                    <input type="checkbox" th:value="${f}" th:checked="${form.facilitiesCsv != null and #strings.contains(form.facilitiesCsv,f)}">
+                    <span th:text="${#strings.replace(f,'_',' ')}"></span>
+                </label>
+            </div>
+        </fieldset>
+        <fieldset class="span-2 choice-section">
+            <legend>Faulty additional facilities</legend>
+            <p class="field-help">Tick only currently faulty items. Projector/whiteboard operational status is handled above.</p>
+            <input type="hidden" th:field="*{faultyFacilitiesCsv}" id="faultyFacilitiesCsv">
+            <div class="choice-grid" data-choice-group="faultyFacilitiesCsv">
+                <label class="choice" th:each="f:${facilityOptions}">
+                    <input type="checkbox" th:value="${f}" th:checked="${form.faultyFacilitiesCsv != null and #strings.contains(form.faultyFacilitiesCsv,f)}">
+                    <span th:text="${#strings.replace(f,'_',' ')}"></span>
+                </label>
+            </div>
+        </fieldset>
+        <div class="span-2 buttons">
+            <button class="btn primary">Save room</button>
+            <a class="btn ghost" th:href="@{/admin/rooms}">Cancel</a>
+        </div>
+        <div class="span-2 validation" th:if="${#fields.hasAnyErrors()}">
+            <p th:each="e:${#fields.allErrors()}" th:text="${e}"></p>
+        </div>
+    </form>
+    <section class="panel" th:if="${form.id!=null}">
+        <h2>Maintenance windows</h2>
+        <form th:action="@{'/admin/rooms/'+${form.id}+'/maintenance'}" th:object="${maintenanceForm}" method="post" class="form-grid compact">
+            <label>Date<input type="date" th:field="*{date}" required></label>
+            <label>Reason<select th:field="*{reason}" required><option value="">Select reason</option><option th:each="r:${maintenanceReasons}" th:value="${r}" th:text="${r}"></option></select></label>
+            <label>Start<input type="time" th:field="*{startTime}" step="1800" required></label>
+            <label>End<input type="time" th:field="*{endTime}" step="1800" required></label>
+            <div class="span-2"><button class="btn primary">Add maintenance</button></div>
+        </form>
+        <div class="booking-row" th:each="w:${maintenance}">
+            <div><b th:text="${w.date}+' '+${w.startTime}+'–'+${w.endTime}"></b><span th:text="${w.reason}"></span></div>
+            <form th:action="@{'/admin/rooms/'+${form.id}+'/maintenance/'+${w.id}+'/delete'}" method="post">
+                <button class="btn danger small-btn">Remove</button>
+            </form>
+        </div>
+    </section>
+</main>
+<script>
+    (function(){
+        document.querySelectorAll('[data-choice-group]').forEach(g=>{
+            const t=document.getElementById(g.dataset.choiceGroup);
+            const sync=()=>t.value=[...g.querySelectorAll('input:checked')].map(x=>x.value).join(', ');
+            g.querySelectorAll('input[type=checkbox]').forEach(x=>x.addEventListener('change',sync));
+            sync();
+        });
+    })();
+</script>
+</body>
+</html>

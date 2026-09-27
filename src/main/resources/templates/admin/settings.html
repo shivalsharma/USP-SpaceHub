@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Settings')}"></head>
+<body>
+<nav th:replace="~{fragments :: nav}"></nav>
+<main class="container">
+    <div th:replace="~{fragments :: alerts}"></div>
+    <section class="page-head">
+        <div>
+            <p class="eyebrow">CONFIGURABLE POLICY</p>
+            <h1>System settings</h1>
+            <p>Core rules are stored as settings instead of being hard-coded into the UI.</p>
+        </div>
+    </section>
+    <section class="panel">
+        <div class="setting-row" th:each="s:${settings}">
+            <div><b th:text="${s.key}"></b><p th:text="${s.description}"></p></div>
+            <form th:action="@{/admin/settings}" method="post">
+                <input type="hidden" name="key" th:value="${s.key}">
+                <input name="value" th:value="${s.value}" required>
+                <button class="btn ghost small-btn">Update</button>
+            </form>
+        </div>
+    </section>
+</main>
+</body>
+</html>

@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments :: head('Booking Approvals')}"></head>
+
+<body>
+
+<nav th:replace="~{fragments :: nav}"></nav>
+
+<main class="container approvals-page">
+
+    <div th:replace="~{fragments :: alerts}"></div>
+
+    <section class="approvals-heading">
+        <p class="eyebrow">BOOKING APPROVALS</p>
+        <h1>Pending booking requests</h1>
+        <p>Review pending requests and open a request to see the system recommendation.</p>
+    </section>
+
+    <div class="alert error"
+         th:if="${approvalLoadError != null}"
+         th:text="${approvalLoadError}">
+        Unable to load approval requests.
+    </div>
+
+    <section class="approvals-admin-card">
+
+        <div class="approval-tab-content">
+
+            <div class="empty"
+                 th:if="${approvalLoadError == null and (pending == null or #lists.isEmpty(pending))}">
+                No pending booking requests.
+            </div>
+
+            <div class="approval-table-wrap"
+                 th:if="${pending != null and !#lists.isEmpty(pending)}">
+
+                <table class="approval-table">
+
+                    <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Requester</th>
+                        <th>Type / Course</th>
+                        <th>Room</th>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th>Students</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                    </thead>
+
+                    <tbody>
+                    <tr th:each="b : ${pending}">
+
+                        <td th:text="${b.id}">1</td>
+
+                        <td>
+                            <span th:if="${b.requester != null}"
+                                  th:text="${b.requester.name}">
+                                Requester
+                            </span>
+
+                            <span th:if="${b.requester == null}">
+                                Unknown user
+                            </span>
+                        </td>
+
+                        <td>
+                            <span th:text="${b.type != null ? b.type : '—'}">
+                                LAB
+                            </span>
+
+                            <span> / </span>
+
+                            <span th:if="${b.course != null}"
+                                  th:text="${b.course.code}">
+                                CS314
+                            </span>
+
+                            <span th:if="${b.course == null}">
+                                ECA
+                            </span>
+                        </td>
+
+                        <td>
+                            <span th:if="${b.room != null}"
+                                  th:text="${b.room.code}">
+                                ICT-LAB-1
+                            </span>
+
+                            <span th:if="${b.room == null}">
+                                No room
+                            </span>
+                        </td>
+
+                        <td th:text="${b.date != null ? b.date : '—'}">
+                            2026-09-27
+                        </td>
+
+                        <td>
+                            <span th:text="${b.startTime != null ? b.startTime : '—'}">
+                                10:00
+                            </span>
+
+                            <span> – </span>
+
+                            <span th:text="${b.endTime != null ? b.endTime : '—'}">
+                                12:00
+                            </span>
+                        </td>
+
+                        <td th:text="${b.expectedStudents}">
+                            0
+                        </td>
+
+                        <td>
+                            <span class="status"
+                                  th:if="${b.status != null}"
+                                  th:classappend="${b.status}"
+                                  th:text="${b.status}">
+                                PENDING
+                            </span>
+
+                            <span th:if="${b.status == null}">
+                                UNKNOWN
+                            </span>
+                        </td>
+
+                        <td>
+                            <a class="btn primary small-btn"
+                               th:href="@{/admin/approvals/{id}(id=${b.id})}">
+                                Review Booking
+                            </a>
+                        </td>
+
+                    </tr>
+                    </tbody>
+
+                </table>
+            </div>
+
+        </div>
+
+    </section>
+
+</main>
+
+</body>
+</html>
