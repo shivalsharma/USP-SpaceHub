@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Find a Room')}"></head>
+<body>
+<nav th:replace="~{fragments :: nav}"></nav>
+
+<main class="container search-page"
+      th:attr="data-today=${today},data-max-date=${maxBookingDate},data-day-start=${bookingDayStart},data-day-end=${bookingDayEnd}">
+
+  <section class="search-hero">
+    <div>
+      <p class="eyebrow">SPACEHUB SMART SEARCH</p>
+      <h1>Find the right room, not just a free room.</h1>
+      <p>Tell us what you need. SpaceHub checks availability, capacity, facilities, timetable clashes and booking rules first, then ranks the valid rooms by suitability and fairness.</p>
+    </div>
+    <div class="search-hero-note">
+      <strong>How it works</strong>
+      <span>1. Validate</span>
+      <span>2. Match</span>
+      <span>3. Rank</span>
+      <span>4. Recommend</span>
+    </div>
+  </section>
+
+  <form th:action="@{/search}" th:object="${searchForm}" method="post" id="searchForm" class="smart-search-form">
+
+    <section class="search-step">
+      <div class="step-heading">
+        <span class="step-number">1</span>
+        <div>
+          <h2>What are you booking?</h2>
+          <p>Choose the activity first. We will only ask for information that is relevant.</p>
+        </div>
+      </div>
+
+      <div class="booking-type-grid">
+        <label class="booking-type-card" th:each="t : ${bookingTypes}">
+          <input type="radio" th:field="*{bookingType}" th:value="${t}">
+          <span class="booking-type-icon" th:text="${t.name() == 'LAB' ? '⌨' : (t.name() == 'TUTORIAL' ? '✎' : '★')}">★</span>
+          <span class="booking-type-copy">
+            <strong th:text="${t.name() == 'LAB' ? 'Lab' : (t.name() == 'TUTORIAL' ? 'Tutorial' : 'Extra-curricular')}">Lab</strong>
+            <small th:text="${t.name() == 'LAB' ? 'Computer or specialist lab session' : (t.name() == 'TUTORIAL' ? 'Tutorial or teaching session' : 'Club, event or student activity')}">Description</small>
+          </span>
+          <span class="type-check">✓</span>
+        </label>
+      </div>
+      <p class="field-error" th:if="${#fields.hasErrors('bookingType')}" th:errors="*{bookingType}"></p>
+    </section>
+
+    <section class="search-step" id="academicSection">
+      <div class="step-heading">
+        <span class="step-number">2</span>
+        <div>
+          <h2>Select your course</h2>
+          <p>Class size and mandatory course facilities are loaded automatically.</p>
+        </div>
+      </div>
+
+      <div class="course-picker-grid">
+        <label class="field-card field-with-feedback" id="courseField">
+          <span class="field-label-row"><span>Course</span><span class="field-rule">Required for Lab/Tutorial</span></span>
+          <select th:field="*{courseId}" id="courseSelect" aria-describedby="courseHelp courseError">
+            <option value="">Choose a course</option>
+            <option th:each="c : ${courses}"
+                    th:value="${c.id}"
+                    th:text="${c.code + ' · ' + c.name}"
+                    th:attr="data-roll=${c.courseRoll},data-facilities=${courseFacilities[c.id]}"></option>
+          </select>
+          <small id="courseHelp">Only active courses you are allowed to book are shown.</small>
+          <span class="inline-field-error" id="courseError" role="alert" aria-live="polite"></span>
+        </label>
+
+        <div class="course-summary" id="courseSummary" aria-live="polite">
+          <div class="summary-icon">i</div>
+          <div>
+            <strong id="courseSummaryTitle">Select a course</strong>
+            <p id="courseSummaryRoll">Class roll will be used automatically.</p>
+            <p id="courseSummaryFacilities">Course-required facilities will be added as hard constraints.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="search-step" id="ecaSection">
+      <div class="step-heading">
+        <span class="step-number">2</span>
+        <div>
+          <h2>Tell us about the activity</h2>
+          <p>For ECA bookings, enter the activity name and expected attendance.</p>
+        </div>
+      </div>
+
+      <div class="form-grid search-fields">
+        <label class="field-with-feedback" id="activityField">
+          <span class="field-label-row"><span>Activity name</span><span class="field-rule">Required</span></span>
+          <input type="text" th:field="*{activityName}" id="activityName" maxlength="120" placeholder="e.g. Robotics Club Workshop" aria-describedby="activityHelp activityError">
+          <small id="activityHelp">Use a short name that will make sense to the approver.</small>
+          <span class="inline-field-error" id="activityError" role="alert" aria-live="polite"></span>
+        </label>
+        <label class="field-with-feedback" id="attendanceField">
+          <span class="field-label-row"><span>Expected attendance</span><span class="field-rule">Required</span></span>
+          <input type="number" min="1" max="2000" th:field="*{expectedStudents}" id="expectedStudents" inputmode="numeric" aria-describedby="attendanceHelp attendanceError">
+          <small id="attendanceHelp">We will only recommend rooms large enough for this number.</small>
+          <span class="inline-field-error" id="attendanceError" role="alert" aria-live="polite"></span>
+        </label>
+      </div>
+    </section>
+
+    <section class="search-step">
+      <div class="step-heading">
+        <span class="step-number">3</span>
+        <div>
+          <h2>When do you need it?</h2>
+          <p th:text="'Bookings can be made between ' + ${bookingDayStart} + ' and ' + ${bookingDayEnd} + ', up to ' + ${maxDurationHours} + ' hours per session.'"></p>
+        </div>
+      </div>
+
+      <div class="quick-date-row" aria-label="Quick date selection">
+        <button type="button" class="quick-date" data-days="0">Today</button>
+        <button type="button" class="quick-date" data-days="1">Tomorrow</button>
+        <button type="button" class="quick-date" data-days="2">In 2 days</button>
+        <button type="button" class="quick-date" data-days="7">Next week</button>
+      </div>
+
+      <div class="time-grid">
+        <label class="field-with-feedback" id="dateField">
+          <span class="field-label-row"><span>Date</span><span class="field-rule">No past dates</span></span>
+          <input type="date" th:field="*{date}" id="dateInput" th:min="${today}" th:max="${maxBookingDate}" required aria-describedby="dateHelp dateError">
+          <small id="dateHelp">Past dates are blocked. You can only book up to the configured booking horizon.</small>
+          <span class="inline-field-error" id="dateError" role="alert" aria-live="polite"></span>
+        </label>
+        <label class="field-with-feedback" id="startField">
+          <span class="field-label-row"><span>Start time</span><span class="field-rule" th:text="${bookingDayStart} + ' earliest'">08:00 earliest</span></span>
+          <input type="time" th:field="*{startTime}" id="startTime" step="3600" th:min="${bookingDayStart}" th:max="${bookingDayEnd}" required aria-describedby="timeError">
+        </label>
+        <label class="field-with-feedback" id="endField">
+          <span class="field-label-row"><span>End time</span><span class="field-rule" th:text="${bookingDayEnd} + ' latest'">22:00 latest</span></span>
+          <input type="time" th:field="*{endTime}" id="endTime" step="3600" th:min="${bookingDayStart}" th:max="${bookingDayEnd}" required aria-describedby="timeError">
+        </label>
+        <div class="duration-card" id="durationCard" aria-live="polite">
+          <span>Session length</span>
+          <strong id="durationValue">2 hours</strong>
+          <small id="durationHint">Within the allowed duration.</small>
+        </div>
+      </div>
+      <div class="time-validation-row" id="timeError" role="alert" aria-live="polite"></div>
+    </section>
+
+    <section class="search-step search-advanced">
+      <details>
+        <summary>
+          <span>
+            <strong>Room preferences & flexibility</strong>
+            <small>Optional — use these only when you need something extra.</small>
+          </span>
+          <span class="summary-chevron">⌄</span>
+        </summary>
+
+        <div class="advanced-body">
+          <fieldset class="choice-section" id="requiredFacilitiesSection">
+            <legend>Additional must-have facilities <small>Hard constraints</small></legend>
+            <p class="field-help">Course facilities are included automatically. Add only facilities that are absolutely required for this booking.</p>
+            <input type="hidden" th:field="*{requiredFacilitiesCsv}" id="requiredFacilitiesCsv">
+            <div class="choice-grid" data-choice-group="requiredFacilitiesCsv" id="requiredFacilitiesGroup">
+              <label class="choice" th:each="f : ${facilityOptions}" data-facility-choice="required">
+                <input type="checkbox" th:value="${f}"
+                       th:checked="${searchForm.requiredFacilitiesCsv != null and #strings.contains(searchForm.requiredFacilitiesCsv, f)}">
+                <span th:text="${#strings.replace(f,'_',' ')}"></span>
+              </label>
+            </div>
+          </fieldset>
+
+          <fieldset class="choice-section" id="optionalFacilitiesSection">
+            <legend>Nice-to-have facilities <small>Soft preference</small></legend>
+            <p class="field-help">These improve ranking only. If a facility is required manually or by the course, its optional choice is disabled automatically.</p>
+            <div class="facility-rule-note"><span aria-hidden="true">✓</span> A facility cannot be both <b>required</b> and <b>optional</b>.</div>
+            <input type="hidden" th:field="*{optionalFacilitiesCsv}" id="optionalFacilitiesCsv">
+            <div class="choice-grid" data-choice-group="optionalFacilitiesCsv" id="optionalFacilitiesGroup">
+              <label class="choice" th:each="f : ${facilityOptions}" data-facility-choice="optional">
+                <input type="checkbox" th:value="${f}"
+                       th:checked="${searchForm.optionalFacilitiesCsv != null and #strings.contains(searchForm.optionalFacilitiesCsv, f)}">
+                <span th:text="${#strings.replace(f,'_',' ')}"></span>
+              </label>
+            </div>
+          </fieldset>
+
+          <div class="form-grid search-fields">
+            <label>
+              Preferred building <small>Soft preference</small>
+              <select th:field="*{preferredBuilding}">
+                <option value="">No preference</option>
+                <option th:each="b : ${buildings}" th:value="${b}" th:text="${b}"></option>
+              </select>
+            </label>
+
+            <label>
+              Flexible time
+              <select th:field="*{flexibilityHours}">
+                <option value="0">Exact time first</option>
+                <option value="1">Up to ±1 hour</option>
+                <option value="2">Up to ±2 hours</option>
+                <option value="3">Up to ±3 hours</option>
+                <option value="4">Up to ±4 hours</option>
+              </select>
+              <small>If the exact slot fails, SpaceHub can suggest nearby times.</small>
+            </label>
+          </div>
+
+          <label class="switch-row">
+            <span>
+              <strong>Search nearby dates</strong>
+              <small>Allow suggestions up to two days before or after your selected date.</small>
+            </span>
+            <input type="checkbox" th:field="*{flexibleDate}">
+          </label>
+        </div>
+      </details>
+    </section>
+
+    <div class="validation" th:if="${#fields.hasAnyErrors()}">
+      <strong>Please check the form.</strong>
+      <p th:each="e : ${#fields.allErrors()}" th:text="${e}"></p>
+    </div>
+
+    <div class="search-submit-bar" id="searchSubmitBar" aria-live="polite">
+      <div class="search-ready-copy">
+        <strong id="formReadyTitle">Complete your booking details</strong>
+        <span id="formReadyText">We will check your request before searching.</span>
+      </div>
+      <button class="btn primary search-submit" type="submit" id="searchButton">
+        <span class="search-button-icon">⌕</span>
+        <span>Find best rooms</span>
+      </button>
+    </div>
+  </form>
+
+  <section th:if="${result != null}" class="results smart-results">
+    <div class="results-heading">
+      <div>
+        <p class="eyebrow">SEARCH RESULTS</p>
+        <h2 th:if="${!#lists.isEmpty(result.recommendations)}">Best rooms for your request</h2>
+        <h2 th:if="${#lists.isEmpty(result.recommendations)}">We looked for the closest valid options</h2>
+        <p th:if="${!#lists.isEmpty(result.recommendations)}"
+           th:text="${#lists.size(result.recommendations) + ' ranked room(s) are shown for a required capacity of ' + searchForm.expectedStudents + '.'}"></p>
+      </div>
+      <a href="#searchForm" class="btn ghost">Change search</a>
+    </div>
+
+    <div class="alert error" th:each="v : ${result.globalViolations}" th:text="${v}"></div>
+
+    <article class="recommend-card smart-rec-card" th:each="rec, stat : ${result.recommendations}"
+             th:classappend="${stat.index == 0 ? ' top-recommendation' : ''}">
+      <div class="rank" th:text="${stat.index + 1}">1</div>
+      <div class="rec-main">
+        <div class="rec-title">
+          <div>
+            <div class="result-badges">
+              <span class="badge best" th:if="${stat.index == 0}">BEST MATCH</span>
+              <span class="badge competition" th:if="${rec.pendingCompetition > 0}">PENDING COMPETITION</span>
+            </div>
+            <h2 th:text="${rec.room.code + ' · ' + rec.room.name}">LAB-ICT-1</h2>
+            <p th:text="${(rec.room.building != null ? rec.room.building : 'Campus') + ' · Capacity ' + rec.room.capacity + ' · ' + rec.room.operationalComputers + ' operational computers'}"></p>
+          </div>
+          <div class="score suitability-score">
+            <strong th:text="${rec.score}">94</strong>
+            <span>SUITABILITY / 100</span>
+          </div>
+        </div>
+
+        <div class="score-grid room-score-grid">
+          <span>Facilities <b th:text="${rec.facilityScore}"></b></span>
+          <span>Capacity fit <b th:text="${rec.capacityScore}"></b></span>
+          <span>Time fairness <b th:text="${rec.timeFairnessScore}"></b></span>
+          <span>Utilization <b th:text="${rec.utilizationScore}"></b></span>
+          <span>Room fairness <b th:text="${rec.roomFairnessScore}"></b></span>
+        </div>
+
+        <div class="result-actions">
+          <form th:action="@{/bookings/submit}" method="post" class="book-form">
+            <input type="hidden" name="roomId" th:value="${rec.room.id}">
+            <input type="hidden" name="score" th:value="${rec.score}">
+            <input type="hidden" name="courseId" th:value="${searchForm.courseId}">
+            <input type="hidden" name="bookingType" th:value="${searchForm.bookingType}">
+            <input type="hidden" name="date" th:value="${searchForm.date}">
+            <input type="hidden" name="startTime" th:value="${searchForm.startTime}">
+            <input type="hidden" name="endTime" th:value="${searchForm.endTime}">
+            <input type="hidden" name="expectedStudents" th:value="${searchForm.expectedStudents}">
+            <input type="hidden" name="activityName" th:value="${searchForm.activityName}">
+            <input type="hidden" name="requiredFacilitiesCsv" th:value="${searchForm.requiredFacilitiesCsv}">
+            <button class="btn primary" type="submit" th:text="${stat.index == 0 ? 'Book best match' : 'Book this room'}">Book</button>
+          </form>
+
+          <details class="why-match">
+            <summary>Why this match?</summary>
+            <div class="why-body">
+              <ul class="reasons">
+                <li th:each="r : ${rec.reasons}" th:text="${r}"></li>
+              </ul>
+              <div class="request-context">
+                <strong>Request context</strong>
+                <p>These factors help explain fairness and are useful when admins compare competing requests. They do not inflate the room-suitability ranking.</p>
+                <div class="context-grid">
+                  <span>Time fairness <b th:text="${rec.timeFairnessScore}"></b></span>
+                  <span>Course need <b th:text="${rec.courseNeedScore}"></b></span>
+
+                </div>
+              </div>
+            </div>
+          </details>
+        </div>
+
+        <p class="warning-text" th:if="${rec.pendingCompetition > 0}"
+           th:text="${rec.pendingCompetition + ' competing pending request(s) exist for this room/time. Your request can still be submitted and will go through admin conflict review.'}"></p>
+      </div>
+    </article>
+
+    <section class="panel alternatives-panel" th:if="${!#lists.isEmpty(result.alternatives)}">
+      <div class="panel-head">
+        <div>
+          <p class="eyebrow">SMART ALTERNATIVES</p>
+          <h2>Nearby options</h2>
+          <p>SpaceHub keeps changes as small as possible, preferring nearby times before larger date changes.</p>
+        </div>
+      </div>
+
+      <article class="alternative smart-alternative" th:each="a : ${result.alternatives}">
+        <div class="alternative-copy">
+          <span class="badge alternative-badge">ALTERNATIVE</span>
+          <b th:text="${a.room.code + ' · ' + a.room.name}"></b>
+          <p th:text="${a.date + ' · ' + a.startTime + '–' + a.endTime}"></p>
+          <small th:text="${#strings.listJoin(a.reasons, ' ')}"></small>
+        </div>
+        <div class="alternative-action">
+          <div class="mini-score"><strong th:text="${a.score}">88</strong><span>fit</span></div>
+          <form th:action="@{/bookings/submit}" method="post">
+            <input type="hidden" name="roomId" th:value="${a.room.id}">
+            <input type="hidden" name="score" th:value="${a.score}">
+            <input type="hidden" name="courseId" th:value="${searchForm.courseId}">
+            <input type="hidden" name="bookingType" th:value="${searchForm.bookingType}">
+            <input type="hidden" name="date" th:value="${a.date}">
+            <input type="hidden" name="startTime" th:value="${a.startTime}">
+            <input type="hidden" name="endTime" th:value="${a.endTime}">
+            <input type="hidden" name="expectedStudents" th:value="${searchForm.expectedStudents}">
+            <input type="hidden" name="activityName" th:value="${searchForm.activityName}">
+            <input type="hidden" name="requiredFacilitiesCsv" th:value="${searchForm.requiredFacilitiesCsv}">
+            <button class="btn primary small-btn" type="submit">Book alternative</button>
+          </form>
+        </div>
+      </article>
+    </section>
+
+    <details class="panel muted excluded-panel" th:if="${!#maps.isEmpty(result.excludedRoomReasons)}">
+      <summary>Why were other rooms excluded?</summary>
+      <p class="field-help">These rooms failed one or more mandatory constraints, so they were never included in the ranking.</p>
+      <div class="excluded" th:each="entry : ${result.excludedRoomReasons}">
+        <b th:text="${'Room ' + entry.key}"></b>
+        <span th:text="${#strings.listJoin(entry.value, ' ')}"></span>
+      </div>
+    </details>
+  </section>
+</main>
+
+<script th:inline="javascript">
+(function () {
+  const form = document.getElementById('searchForm');
+  if (!form) return;
+
+  const page = document.querySelector('.search-page');
+  const academicSection = document.getElementById('academicSection');
+  const ecaSection = document.getElementById('ecaSection');
+  const courseSelect = document.getElementById('courseSelect');
+  const expectedStudents = document.getElementById('expectedStudents');
+  const activityName = document.getElementById('activityName');
+  const startTime = document.getElementById('startTime');
+  const endTime = document.getElementById('endTime');
+  const dateInput = document.getElementById('dateInput');
+  const durationValue = document.getElementById('durationValue');
+  const durationHint = document.getElementById('durationHint');
+  const durationCard = document.getElementById('durationCard');
+  const timeError = document.getElementById('timeError');
+  const searchButton = document.getElementById('searchButton');
+  const searchSubmitBar = document.getElementById('searchSubmitBar');
+  const formReadyTitle = document.getElementById('formReadyTitle');
+  const formReadyText = document.getElementById('formReadyText');
+  const requiredGroup = document.getElementById('requiredFacilitiesGroup');
+  const optionalGroup = document.getElementById('optionalFacilitiesGroup');
+  const maxDuration = /*[[${maxDurationHours}]]*/ 4;
+
+  const todayIso = page?.dataset.today || dateInput?.min || '';
+  const maxDateIso = page?.dataset.maxDate || dateInput?.max || '';
+  const dayStart = page?.dataset.dayStart || '08:00';
+  const dayEnd = page?.dataset.dayEnd || '22:00';
+  let lastEcaAttendance = Number(expectedStudents?.value || 1);
+  let submitting = false;
+
+  function selectedType() {
+    return form.querySelector('input[name="bookingType"]:checked')?.value || '';
+  }
+
+  function isAcademic(type) {
+    return type === 'LAB' || type === 'TUTORIAL';
+  }
+
+  function normaliseFacility(value) {
+    return String(value || '').trim().toUpperCase().replace(/\s+/g, '_');
+  }
+
+  function courseFacilitySet() {
+    const raw = courseSelect?.selectedOptions?.[0]?.dataset?.facilities || '';
+    return new Set(raw.split(',').map(normaliseFacility).filter(Boolean));
+  }
+
+  function setFieldError(input, errorId, message) {
+    const error = document.getElementById(errorId);
+    if (input) {
+      input.setCustomValidity(message || '');
+      input.classList.toggle('input-error', Boolean(message));
+      input.setAttribute('aria-invalid', message ? 'true' : 'false');
+    }
+    if (error) {
+      error.textContent = message || '';
+      error.classList.toggle('visible', Boolean(message));
+    }
+  }
+
+  function updateCourseSummary() {
+    const option = courseSelect?.selectedOptions?.[0];
+    const title = document.getElementById('courseSummaryTitle');
+    const rollText = document.getElementById('courseSummaryRoll');
+    const facilitiesText = document.getElementById('courseSummaryFacilities');
+    const summary = document.getElementById('courseSummary');
+
+    if (!option || !option.value) {
+      if (title) title.textContent = 'Select a course';
+      if (rollText) rollText.textContent = 'Class roll will be used automatically.';
+      if (facilitiesText) facilitiesText.textContent = 'Course-required facilities will be added as hard constraints.';
+      summary?.classList.remove('is-ready', 'is-warning');
+      syncFacilityRules();
+      return;
+    }
+
+    const roll = Number(option.dataset.roll || 0);
+    const facilities = option.dataset.facilities || '';
+    if (title) title.textContent = option.textContent.trim();
+    if (rollText) rollText.textContent = roll > 0 ? `Class roll: ${roll} students` : 'Class roll is missing for this course';
+    if (facilitiesText) facilitiesText.textContent = facilities
+      ? `Automatic requirements: ${facilities}`
+      : 'No additional course facilities are recorded.';
+
+    summary?.classList.toggle('is-ready', roll > 0);
+    summary?.classList.toggle('is-warning', roll <= 0);
+    if (isAcademic(selectedType()) && expectedStudents) expectedStudents.value = Math.max(0, roll);
+    syncFacilityRules();
+  }
+
+  function validateCourse() {
+    if (!courseSelect) return true;
+    if (!isAcademic(selectedType())) {
+      setFieldError(courseSelect, 'courseError', '');
+      return true;
+    }
+    if (!courseSelect.value) {
+      setFieldError(courseSelect, 'courseError', 'Choose the course this Lab or Tutorial belongs to.');
+      return false;
+    }
+    const roll = Number(courseSelect.selectedOptions?.[0]?.dataset?.roll || 0);
+    if (roll < 1) {
+      setFieldError(courseSelect, 'courseError', 'This course has no valid class roll. Ask an administrator to update the course before booking.');
+      return false;
+    }
+    setFieldError(courseSelect, 'courseError', '');
+    return true;
+  }
+
+  function validateActivity() {
+    if (!activityName) return true;
+    if (selectedType() !== 'ECA') {
+      setFieldError(activityName, 'activityError', '');
+      return true;
+    }
+    const value = activityName.value.trim();
+    const message = value.length < 3 ? 'Enter a short activity name (at least 3 characters).' : '';
+    setFieldError(activityName, 'activityError', message);
+    return !message;
+  }
+
+  function validateAttendance() {
+    if (!expectedStudents) return true;
+    if (selectedType() !== 'ECA') {
+      setFieldError(expectedStudents, 'attendanceError', '');
+      return true;
+    }
+    const count = Number(expectedStudents.value || 0);
+    let message = '';
+    if (!Number.isFinite(count) || count < 1) message = 'Expected attendance must be at least 1.';
+    else if (count > 2000) message = 'Expected attendance cannot exceed 2000.';
+    setFieldError(expectedStudents, 'attendanceError', message);
+    return !message;
+  }
+
+  function formatDate(iso) {
+    if (!iso) return '';
+    const [y, m, d] = iso.split('-').map(Number);
+    if (!y || !m || !d) return iso;
+    return new Intl.DateTimeFormat(undefined, { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' })
+      .format(new Date(Date.UTC(y, m - 1, d, 12)));
+  }
+
+  function validateDate() {
+    if (!dateInput) return true;
+    const value = dateInput.value;
+    let message = '';
+    if (!value) message = 'Choose a booking date.';
+    else if (todayIso && value < todayIso) message = `Past dates cannot be booked. Choose ${formatDate(todayIso)} or a later date.`;
+    else if (maxDateIso && value > maxDateIso) message = `Bookings can only be made up to ${formatDate(maxDateIso)}.`;
+    setFieldError(dateInput, 'dateError', message);
+    updateQuickDateState();
+    return !message;
+  }
+
+  function toMinutes(value) {
+    if (!value || !value.includes(':')) return null;
+    const [h, m] = value.split(':').map(Number);
+    return h * 60 + m;
+  }
+
+  function validateTimes() {
+    const start = toMinutes(startTime?.value);
+    const end = toMinutes(endTime?.value);
+    const minStart = toMinutes(dayStart);
+    const maxEnd = toMinutes(dayEnd);
+    let message = '';
+
+    startTime?.setCustomValidity('');
+    endTime?.setCustomValidity('');
+    startTime?.classList.remove('input-error');
+    endTime?.classList.remove('input-error');
+    startTime?.setAttribute('aria-invalid', 'false');
+    endTime?.setAttribute('aria-invalid', 'false');
+
+    if (start == null || end == null) message = 'Choose both a start time and an end time.';
+    else if ((start % 60) !== 0 || (end % 60) !== 0) message = 'Bookings must start and end on a whole hour, for example 1:00 PM or 2:00 PM.';
+    else if (start < minStart) message = `Start time cannot be earlier than ${dayStart}.`;
+    else if (end > maxEnd) message = `End time cannot be later than ${dayEnd}.`;
+    else if (end <= start) message = 'End time must be after start time.';
+    else if ((end - start) > maxDuration * 60) message = `Maximum session length is ${maxDuration} hours.`;
+
+    if (message) {
+      if (start != null && start < minStart) {
+        startTime?.setCustomValidity(message);
+        startTime?.classList.add('input-error');
+        startTime?.setAttribute('aria-invalid', 'true');
+      } else {
+        endTime?.setCustomValidity(message);
+        endTime?.classList.add('input-error');
+        endTime?.setAttribute('aria-invalid', 'true');
+      }
+      if (timeError) {
+        timeError.textContent = message;
+        timeError.classList.add('visible');
+      }
+      durationCard?.classList.add('has-error');
+    } else {
+      if (timeError) {
+        timeError.textContent = '';
+        timeError.classList.remove('visible');
+      }
+      durationCard?.classList.remove('has-error');
+    }
+
+    if (start == null || end == null || end <= start) {
+      if (durationValue) durationValue.textContent = 'Check times';
+      if (durationHint) durationHint.textContent = message || 'Choose a valid start and end time.';
+      return false;
+    }
+
+    const mins = end - start;
+    const hours = Math.floor(mins / 60);
+    const remainder = mins % 60;
+    const parts = [];
+    if (hours) parts.push(`${hours} hour${hours === 1 ? '' : 's'}`);
+    if (remainder) parts.push(`${remainder} min`);
+    if (durationValue) durationValue.textContent = parts.join(' ') || '0 min';
+    if (durationHint) durationHint.textContent = message || 'Within the allowed duration.';
+    return !message;
+  }
+
+  function syncChoiceGroup(group) {
+    if (!group) return;
+    const target = document.getElementById(group.dataset.choiceGroup);
+    if (!target) return;
+    const values = [...group.querySelectorAll('input[type="checkbox"]:checked:not(:disabled)')].map(x => x.value);
+    target.value = values.join(', ');
+  }
+
+  function syncFacilityRules() {
+    if (!requiredGroup || !optionalGroup) return;
+
+    const automatic = courseFacilitySet();
+    const requiredChecks = [...requiredGroup.querySelectorAll('input[type="checkbox"]')];
+
+    requiredChecks.forEach(box => {
+      const key = normaliseFacility(box.value);
+      const label = box.closest('.choice');
+      const autoRequired = isAcademic(selectedType()) && automatic.has(key);
+      if (autoRequired) box.checked = false;
+      box.disabled = autoRequired;
+      label?.classList.toggle('choice-disabled', autoRequired);
+      label?.classList.toggle('course-required-choice', autoRequired);
+      if (label) {
+        if (autoRequired) label.dataset.lockReason = 'Required by course';
+        else delete label.dataset.lockReason;
+      }
+    });
+
+    const manuallyRequired = new Set(requiredChecks.filter(x => x.checked && !x.disabled).map(x => normaliseFacility(x.value)));
+
+    [...optionalGroup.querySelectorAll('input[type="checkbox"]')].forEach(box => {
+      const key = normaliseFacility(box.value);
+      const label = box.closest('.choice');
+      const courseRequired = isAcademic(selectedType()) && automatic.has(key);
+      const manualRequired = manuallyRequired.has(key);
+      const blocked = courseRequired || manualRequired;
+
+      if (blocked && box.checked) box.checked = false;
+      box.disabled = blocked;
+      label?.classList.toggle('choice-disabled', blocked);
+      label?.classList.toggle('course-required-choice', courseRequired);
+      if (label) {
+        if (courseRequired) label.dataset.lockReason = 'Required by course';
+        else if (manualRequired) label.dataset.lockReason = 'Already required';
+        else delete label.dataset.lockReason;
+      }
+    });
+
+    syncChoiceGroup(requiredGroup);
+    syncChoiceGroup(optionalGroup);
+  }
+
+  function updateBookingTypeUI() {
+    const type = selectedType();
+    const academic = isAcademic(type);
+
+    if (academicSection) academicSection.hidden = !academic;
+    if (ecaSection) ecaSection.hidden = type !== 'ECA';
+    if (courseSelect) courseSelect.required = academic;
+    if (activityName) activityName.required = type === 'ECA';
+
+    if (expectedStudents) {
+      expectedStudents.required = true;
+      if (academic) {
+        if (!expectedStudents.readOnly) lastEcaAttendance = Number(expectedStudents.value || lastEcaAttendance || 1);
+        expectedStudents.readOnly = true;
+        expectedStudents.classList.add('readonly-field');
+        updateCourseSummary();
+      } else {
+        expectedStudents.readOnly = false;
+        expectedStudents.classList.remove('readonly-field');
+        if (Number(expectedStudents.value) <= 1 && lastEcaAttendance > 1) expectedStudents.value = lastEcaAttendance;
+      }
+    }
+
+    syncFacilityRules();
+    validateAll();
+  }
+
+  function addDays(iso, days) {
+    const [y, m, d] = iso.split('-').map(Number);
+    const dt = new Date(Date.UTC(y, m - 1, d + days, 12, 0, 0));
+    return `${dt.getUTCFullYear()}-${String(dt.getUTCMonth() + 1).padStart(2, '0')}-${String(dt.getUTCDate()).padStart(2, '0')}`;
+  }
+
+  function updateQuickDateState() {
+    document.querySelectorAll('.quick-date').forEach(button => {
+      if (!todayIso) return;
+      const target = addDays(todayIso, Number(button.dataset.days || 0));
+      button.disabled = Boolean(maxDateIso && target > maxDateIso);
+      button.classList.toggle('active', dateInput?.value === target);
+    });
+  }
+
+  document.querySelectorAll('.quick-date').forEach(button => {
+    button.addEventListener('click', () => {
+      if (!todayIso || !dateInput || button.disabled) return;
+      dateInput.value = addDays(todayIso, Number(button.dataset.days || 0));
+      dateInput.dispatchEvent(new Event('change', { bubbles: true }));
+      dateInput.focus();
+    });
+  });
+
+  function validateAll() {
+    const courseOk = validateCourse();
+    const activityOk = validateActivity();
+    const attendanceOk = validateAttendance();
+    const dateOk = validateDate();
+    const timeOk = validateTimes();
+    const typeOk = Boolean(selectedType());
+    const valid = typeOk && courseOk && activityOk && attendanceOk && dateOk && timeOk;
+
+    if (!submitting && searchButton) searchButton.disabled = !valid;
+    if (searchSubmitBar) {
+      searchSubmitBar.classList.toggle('is-ready', valid);
+      searchSubmitBar.classList.toggle('is-incomplete', !valid);
+    }
+    if (formReadyTitle) formReadyTitle.textContent = valid ? 'Ready to find the best room' : 'Complete the highlighted details';
+    if (formReadyText) {
+      if (valid) {
+        const type = selectedType();
+        const dateText = dateInput?.value ? formatDate(dateInput.value) : '';
+        formReadyText.textContent = `${type} · ${dateText} · ${startTime?.value || ''}–${endTime?.value || ''}. Hard constraints will be checked before ranking.`;
+      } else {
+        formReadyText.textContent = 'Errors are shown immediately so you can fix them before searching.';
+      }
+    }
+    return valid;
+  }
+
+  form.querySelectorAll('input[name="bookingType"]').forEach(radio =>
+    radio.addEventListener('change', updateBookingTypeUI));
+
+  courseSelect?.addEventListener('change', () => {
+    updateCourseSummary();
+    validateAll();
+  });
+
+  activityName?.addEventListener('input', validateAll);
+  expectedStudents?.addEventListener('input', () => {
+    if (selectedType() === 'ECA') lastEcaAttendance = Number(expectedStudents.value || 1);
+    validateAll();
+  });
+  dateInput?.addEventListener('input', validateAll);
+  dateInput?.addEventListener('change', validateAll);
+  function enforceWholeHour(input) {
+    if (!input || !input.value) return;
+    const mins = toMinutes(input.value);
+    if (mins != null && mins % 60 !== 0) {
+      input.setCustomValidity('Choose a whole-hour time such as 13:00, not 13:05.');
+      input.classList.add('input-error');
+      input.setAttribute('aria-invalid', 'true');
+    }
+  }
+
+  startTime?.addEventListener('input', () => { enforceWholeHour(startTime); validateAll(); });
+  startTime?.addEventListener('change', () => { enforceWholeHour(startTime); validateAll(); });
+  endTime?.addEventListener('input', () => { enforceWholeHour(endTime); validateAll(); });
+  endTime?.addEventListener('change', () => { enforceWholeHour(endTime); validateAll(); });
+
+  requiredGroup?.querySelectorAll('input[type="checkbox"]').forEach(box => {
+    box.addEventListener('change', () => {
+      syncFacilityRules();
+      validateAll();
+    });
+  });
+
+  optionalGroup?.querySelectorAll('input[type="checkbox"]').forEach(box => {
+    box.addEventListener('change', () => {
+      syncChoiceGroup(optionalGroup);
+      validateAll();
+    });
+  });
+
+  form.addEventListener('submit', event => {
+    syncFacilityRules();
+    if (!validateAll()) {
+      event.preventDefault();
+      const firstInvalid = form.querySelector(':invalid, .input-error');
+      firstInvalid?.focus();
+      firstInvalid?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+
+    submitting = true;
+    if (searchButton) {
+      searchButton.disabled = true;
+      searchButton.classList.add('is-loading');
+      const label = searchButton.querySelector('span:last-child');
+      if (label) label.textContent = 'Finding best rooms…';
+    }
+  });
+
+  updateCourseSummary();
+  updateBookingTypeUI();
+  updateQuickDateState();
+  syncFacilityRules();
+  validateAll();
+})();
+</script>
+</body>
+</html>
