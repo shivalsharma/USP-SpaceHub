@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Notifications')}"></head>
+<body>
+<nav th:replace="~{fragments :: nav}"></nav>
+<main class="container">
+    <section class="page-head">
+        <div>
+            <p class="eyebrow">STATUS UPDATES</p>
+            <h1>Notifications</h1>
+            <p>Booking submissions, approval decisions, alternatives, cancellations, and reminders.</p>
+        </div>
+        <form th:action="@{/notifications/read-all}" method="post">
+            <button class="btn ghost">Mark all read</button>
+        </form>
+    </section>
+    <section class="notice-list">
+        <article class="notice" th:each="n:${notifications}" th:classappend="${!n.readFlag}?' unread':''">
+            <div>
+                <div class="notice-title">
+                    <b th:text="${n.title}"></b>
+                    <span th:if="${!n.readFlag}" class="dot"></span>
+                </div>
+                <p th:text="${n.message}"></p>
+                <small th:text="${n.createdAt}"></small>
+            </div>
+            <form th:if="${!n.readFlag}" th:action="@{'/notifications/'+${n.id}+'/read'}" method="post">
+                <button class="btn ghost small-btn">Mark read</button>
+            </form>
+        </article>
+        <div th:if="${#lists.isEmpty(notifications)}" class="panel empty">No notifications yet.</div>
+    </section>
+</main>
+</body>
+</html>

@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head th:fragment="head(title)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title th:text="${title} + ' | USP SpaceHub'">
+        USP SpaceHub
+    </title>
+
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+
+<body>
+
+
+<!-- =========================================================
+     GLOBAL SIDEBAR
+     ========================================================= -->
+<nav th:fragment="nav" class="global-sidebar">
+
+    <!-- BRAND -->
+    <div class="global-sidebar-header">
+
+        <a class="global-sidebar-brand"
+           th:href="@{/dashboard}">
+
+            <span class="global-sidebar-logo">
+                USP
+            </span>
+
+            <span class="global-sidebar-brand-text">
+                <small>USP</small>
+                <strong>SpaceHub</strong>
+            </span>
+
+        </a>
+
+    </div>
+
+
+    <!-- =====================================================
+         MAIN NAVIGATION
+         ===================================================== -->
+    <div class="global-sidebar-links">
+
+
+        <!-- DASHBOARD -->
+        <a th:href="@{/dashboard}"
+           class="global-sidebar-link">
+
+            <span class="global-sidebar-icon">⌂</span>
+
+            <span>Dashboard</span>
+
+        </a>
+
+
+        <!-- SEARCH -->
+        <a th:href="@{/search}"
+           class="global-sidebar-link">
+
+            <span class="global-sidebar-icon">⌕</span>
+
+            <span>Search &amp; Book</span>
+
+        </a>
+
+
+        <!-- BOOKINGS -->
+        <a th:href="@{/bookings}"
+           class="global-sidebar-link">
+
+            <span class="global-sidebar-icon">▣</span>
+
+            <span>My Bookings</span>
+
+        </a>
+
+
+        <!-- CALENDAR -->
+        <a th:href="@{/calendar}"
+           class="global-sidebar-link">
+
+            <span class="global-sidebar-icon">▦</span>
+
+            <span>My Timetable</span>
+
+        </a>
+
+
+        <!-- NOTIFICATIONS -->
+        <a th:href="@{/notifications}"
+           class="global-sidebar-link">
+
+            <span class="global-sidebar-icon">◇</span>
+
+            <span>Notifications</span>
+
+        </a>
+
+
+        <!-- PROFILE -->
+        <a th:href="@{/profile}"
+           class="global-sidebar-link">
+
+            <span class="global-sidebar-icon">♙</span>
+
+            <span>Profile</span>
+
+        </a>
+
+
+        <!-- =================================================
+             ADMIN
+             ================================================= -->
+
+        <a sec:authorize="hasRole('ADMIN')"
+           th:href="@{/admin}"
+           class="global-sidebar-link">
+
+            <span class="global-sidebar-icon">⚙</span>
+
+            <span>Admin</span>
+
+        </a>
+
+
+        <a sec:authorize="hasRole('ADMIN')"
+           th:href="@{/admin/approvals}"
+           class="global-sidebar-link">
+
+            <span class="global-sidebar-icon">✓</span>
+
+            <span>Approvals</span>
+
+        </a>
+
+
+        <a sec:authorize="hasRole('ADMIN')"
+           th:href="@{/admin/bookings}"
+           class="global-sidebar-link">
+
+            <span class="global-sidebar-icon">☷</span>
+
+            <span>Booking Management</span>
+
+        </a>
+
+
+        <!-- =================================================
+             IT ADMIN
+             ================================================= -->
+
+        <a sec:authorize="hasRole('IT_ADMIN')"
+           th:href="@{/admin/users}"
+           class="global-sidebar-link">
+
+            <span class="global-sidebar-icon">♟</span>
+
+            <span>Users</span>
+
+        </a>
+
+
+        <a sec:authorize="hasRole('IT_ADMIN')"
+           th:href="@{/admin/rooms}"
+           class="global-sidebar-link">
+
+            <span class="global-sidebar-icon">▤</span>
+
+            <span>Rooms</span>
+
+        </a>
+
+    </div>
+
+
+    <!-- =====================================================
+         SIGN OUT
+         ===================================================== -->
+    <div class="global-sidebar-footer">
+
+        <form th:action="@{/logout}"
+              method="post">
+
+            <button type="submit"
+                    class="global-sidebar-signout">
+
+                <span>↪</span>
+
+                <span>Sign out</span>
+
+            </button>
+
+        </form>
+
+    </div>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const currentPath = window.location.pathname;
+
+    const links = document.querySelectorAll(".global-sidebar-link");
+
+    links.forEach(function (link) {
+
+        link.classList.remove("active");
+
+        const linkPath = new URL(link.href, window.location.origin).pathname;
+
+        let isActive = false;
+
+        /* Dashboard */
+        if (linkPath === "/dashboard") {
+            isActive = currentPath === "/dashboard";
+        }
+
+        /* Search & Book */
+        else if (linkPath === "/search") {
+            isActive = currentPath === "/search";
+        }
+
+        /* My Bookings */
+        else if (linkPath === "/bookings") {
+            isActive =
+                currentPath === "/bookings" ||
+                currentPath.startsWith("/bookings/");
+        }
+
+        /* My Timetable / Calendar */
+        else if (linkPath === "/calendar") {
+            isActive =
+                currentPath === "/calendar" ||
+                currentPath.startsWith("/calendar/");
+        }
+
+        /* Notifications */
+        else if (linkPath === "/notifications") {
+            isActive =
+                currentPath === "/notifications" ||
+                currentPath.startsWith("/notifications/");
+        }
+
+        /* Profile */
+        else if (linkPath === "/profile") {
+            isActive =
+                currentPath === "/profile" ||
+                currentPath === "/edit-profile";
+        }
+
+        /* Approvals */
+        else if (linkPath === "/admin/approvals") {
+            isActive =
+                currentPath === "/admin/approvals" ||
+                currentPath.startsWith("/admin/approvals/");
+        }
+
+        /* Booking Management */
+        else if (linkPath === "/admin/bookings") {
+            isActive =
+                currentPath === "/admin/bookings" ||
+                currentPath.startsWith("/admin/bookings/");
+        }
+
+        /* Admin - only if another admin section isn't active */
+        else if (linkPath === "/admin") {
+            isActive = currentPath === "/admin";
+        }
+
+        if (isActive) {
+            link.classList.add("active");
+        }
+
+    });
+
+});
+</script>
+</nav>
+
+
+<!-- =========================================================
+     ALERTS
+     ========================================================= -->
+<div th:fragment="alerts">
+
+    <div th:if="${success}"
+         class="alert success"
+         th:text="${success}">
+    </div>
+
+    <div th:if="${error}"
+         class="alert error"
+         th:text="${error}">
+    </div>
+
+</div>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+
+        const currentPath = window.location.pathname;
+
+        document.querySelectorAll(".global-sidebar-link")
+            .forEach(function (link) {
+
+                const linkPath = new URL(link.href).pathname;
+
+                let active = false;
+
+                if (linkPath === "/dashboard") {
+                    active = currentPath === "/dashboard";
+                }
+
+                else if (linkPath === "/admin") {
+                    active = currentPath === "/admin";
+                }
+
+                else {
+                    active =
+                        currentPath === linkPath ||
+                        currentPath.startsWith(linkPath + "/");
+                }
+
+                if (active) {
+                    link.classList.add("active");
+                }
+
+            });
+
+    });
+</script>
+
+</body>
+</html>

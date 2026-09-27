@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments :: head('Calendar')}"></head>
+<body>
+<nav th:replace="~{fragments :: nav}"></nav>
+<main class="container">
+    <section class="page-head">
+        <div>
+            <p class="eyebrow">CONFIRMED SCHEDULE</p>
+            <h1>Calendar</h1>
+            <p>Without a room filter, you see your confirmed bookings. Select a room to view its confirmed timetable.</p>
+        </div>
+    </section>
+    <section class="calendar-toolbar">
+        <a class="btn ghost" th:href="@{/calendar(month=${prev},roomId=${roomId})}">← Previous</a>
+        <h2 th:text="${month}"></h2>
+        <a class="btn ghost" th:href="@{/calendar(month=${next},roomId=${roomId})}">Next →</a>
+        <form th:action="@{/calendar}" method="get">
+            <input type="hidden" name="month" th:value="${month}">
+            <label for="calendar-room">Calendar view</label>
+            <select id="calendar-room" name="roomId">
+                <option value="">My calendar</option>
+                <option th:each="r:${rooms}" th:value="${r.id}" th:selected="${roomId==r.id}" th:text="${r.code}+' · '+${r.name}"></option>
+            </select>
+            <button class="btn primary" type="submit">Show calendar</button>
+        </form>
+    </section>
+    <div class="inline-form">
+        <p id="calendar-live-status" class="small" role="status" aria-live="polite">Live updates every 5 seconds.</p>
+        <button id="calendar-refresh" class="btn ghost small-btn" type="button" hidden>Refresh now</button>
+    </div>
+    <noscript><p class="alert">Automatic updates need JavaScript. Reload this page to see the latest bookings.</p></noscript>
+    <div class="calendar-scroll" tabindex="0" role="region" aria-label="Monthly booking calendar">
+    <div class="calendar-week">
+        <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+    </div>
+    <section class="calendar-grid" id="calendar-grid" th:fragment="grid"
+             th:attr="data-live-url=@{/calendar/live(month=${month},roomId=${roomId})}" aria-label="Approved bookings">
+        <article class="day" th:each="d:${days}" th:classappend="${!d.inMonth}?' outside':''">
+            <b class="day-num" th:text="${d.date.dayOfMonth}"></b>
+            <div class="cal-booking" th:each="b:${d.bookings}">
+                <b th:text="${b.startTime}+'–'+${b.endTime}"></b>
+                <span th:text="${b.room.code} + ' · ' + ${b.room.building}"></span>
+                <span th:text="${b.type}+' · '+${b.course!=null?b.course.code:'ECA'}"></span>
+            </div>
+        </article>
+    </section>
+    </div>
+</main>
+<script>
+(() => {
+    const grid = document.getElementById('calendar-grid');
+    const status = document.getElementById('calendar-live-status');
+    const button = document.getElementById('calendar-refresh');
+    if (!grid || !grid.dataset.liveUrl) return;
+    const liveUrl = grid.dataset.liveUrl;
+    let timer;
+    let pending = false;
+    let stopped = false;
+    button.hidden = false;
+
+    function schedule() {
+        clearTimeout(timer);
+        if (!stopped && !document.hidden) timer = setTimeout(refresh, 5000);
+    }
+
+    async function refresh() {
+        if (stopped || pending || document.hidden) return;
+        clearTimeout(timer);
+        if (!navigator.onLine) {
+            status.textContent = 'Offline — showing the last loaded bookings. Reconnecting automatically.';
+            schedule();
+            return;
+        }
+        pending = true;
+        button.disabled = true;
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 10000);
+        try {
+            const response = await fetch(liveUrl, {
+                credentials: 'same-origin', cache: 'no-store', signal: controller.signal,
+                headers: { 'Accept': 'text/html' }
+            });
+            if (response.redirected || response.status === 401 || response.status === 403) {
+                stopped = true;
+                status.textContent = 'Your session has ended. Reload the page and sign in again.';
+                return;
+            }
+            if (!response.ok) throw new Error('Calendar refresh failed');
+            const html = await response.text();
+            const updated = new DOMParser().parseFromString(html, 'text/html').getElementById('calendar-grid');
+            if (!updated) throw new Error('Missing calendar grid');
+            // Keep the toolbar, selected view and scroll container in place.
+            if (grid.innerHTML !== updated.innerHTML) grid.innerHTML = updated.innerHTML;
+            status.textContent = 'Live · Last updated ' + new Intl.DateTimeFormat('en-GB', {
+                timeZone: 'Pacific/Fiji', hour: '2-digit', minute: '2-digit', second: '2-digit'
+            }).format(new Date()) + ' (Fiji time)';
+        } catch (error) {
+            status.textContent = 'Update unavailable — showing the last loaded bookings. Retrying automatically.';
+        } finally {
+            clearTimeout(timeout);
+            pending = false;
+            button.disabled = stopped;
+            schedule();
+        }
+    }
+    button.addEventListener('click', refresh);
+    document.addEventListener('visibilitychange', () => {
+        clearTimeout(timer);
+        if (!document.hidden) refresh();
+    });
+    window.addEventListener('online', refresh);
+    window.addEventListener('offline', () => {
+        status.textContent = 'Offline — showing the last loaded bookings. Reconnecting automatically.';
+    });
+    window.addEventListener('pagehide', () => clearTimeout(timer));
+    window.addEventListener('pageshow', () => { if (!document.hidden) refresh(); });
+    schedule();
+})();
+</script>
+</body>
+</html>
