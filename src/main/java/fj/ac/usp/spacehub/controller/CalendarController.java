@@ -2,13 +2,15 @@ package fj.ac.usp.spacehub.controller;
 
 import fj.ac.usp.spacehub.model.UserAccount;
 import fj.ac.usp.spacehub.repository.RoomRepository;
+import fj.ac.usp.spacehub.service.CalendarService;
 import fj.ac.usp.spacehub.service.CurrentUserService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.time.YearMonth;
 import java.time.ZoneId;
@@ -41,7 +43,7 @@ public class CalendarController {
     String live(Authentication auth, @RequestParam(required = false) String month,
                 @RequestParam(required = false) Long roomId, Model m,
                 HttpServletResponse response) {
-        // Use the same authenticated user, filters and approved-booking query as the full page.
+        // Use the same authenticated user, filters and booking-status query as the full page.
         page(auth, month, roomId, m);
         response.setHeader("Cache-Control", "no-store");
         return "calendar :: grid";
