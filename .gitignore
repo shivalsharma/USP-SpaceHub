@@ -24,3 +24,5 @@ target/
 # virtual machine crash logs
 hs_err_pid*
 replay_pid*
+# User uploaded profile pictures
+uploads/

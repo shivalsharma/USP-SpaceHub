@@ -15,7 +15,7 @@
 <!-- =========================================================
      MAIN PROFILE PAGE
      ========================================================= -->
-<main class="container">
+<main class="container profile-page">
 
     <!-- Shared alerts -->
     <div th:replace="~{fragments :: alerts}"></div>
@@ -26,25 +26,112 @@
          ===================================================== -->
     <section class="page-head profile-page-head">
 
-        <div class="profile-heading-info">
+        <div class="profile-header-left">
 
-            <p class="eyebrow">
-                AVAILABILITY PROFILE
-            </p>
 
-            <h1 th:text="${user.name}">
-                Ana Singh
-            </h1>
+            <!-- =================================================
+                 PROFILE PICTURE
+                 ================================================= -->
+            <div class="profile-avatar">
 
-            <p class="profile-user-details"
-               th:text="${user.userCode + ' · ' + user.email + ' · ' + user.role + ' · ' + user.department}">
-                S12345678 · student1@usp.ac.fj · STUDENT · SITEMP
-            </p>
+                <!-- Uploaded picture -->
+                <img th:if="${user.profilePicture != null and !#strings.isEmpty(user.profilePicture)}"
+                     th:src="@{'/uploads/profile-pictures/' + ${user.profilePicture}}"
+                     alt="Profile picture"
+                     class="profile-avatar-image">
+
+
+                <!-- Fallback initial -->
+                <span th:unless="${user.profilePicture != null and !#strings.isEmpty(user.profilePicture)}"
+                      th:text="${#strings.substring(user.name,0,1)}">
+                    A
+                </span>
+
+            </div>
+
+
+
+            <!-- =================================================
+                 PROFILE INFORMATION
+                 ================================================= -->
+            <div class="profile-heading-info">
+
+                <p class="eyebrow">
+                    AVAILABILITY PROFILE
+                </p>
+
+
+                <h1 th:text="${user.name}">
+                    Ana Singh
+                </h1>
+
+
+                <div class="profile-user-meta">
+
+                    <span class="profile-meta-item"
+                          th:text="${user.userCode}">
+                        S12345678
+                    </span>
+
+
+                    <span class="profile-meta-divider">
+                        ·
+                    </span>
+
+
+                    <span class="profile-meta-item"
+                          th:text="${user.email}">
+                        student1@usp.ac.fj
+                    </span>
+
+
+                    <span class="profile-meta-divider">
+                        ·
+                    </span>
+
+
+                    <span class="profile-role-badge"
+                          th:text="${user.role}">
+                        STUDENT
+                    </span>
+
+
+                    <span th:if="${user.department != null and !#strings.isEmpty(user.department)}"
+                          class="profile-meta-divider">
+                        ·
+                    </span>
+
+
+                    <span th:if="${user.department != null and !#strings.isEmpty(user.department)}"
+                          class="profile-meta-item"
+                          th:text="${user.department}">
+                        SITEMP
+                    </span>
+
+                </div>
+
+
+                <!-- ACCOUNT STATUS -->
+                <div class="profile-account-status"
+                     th:classappend="${user.active ? ' active' : ' inactive'}">
+
+                    <span class="profile-status-dot"></span>
+
+                    <span th:text="${user.active ? 'Active Account' : 'Inactive Account'}">
+                        Active Account
+                    </span>
+
+                </div>
+
+            </div>
 
         </div>
 
 
-        <!-- EDIT PROFILE BUTTON -->
+
+        <!-- =================================================
+             EDIT PROFILE BUTTON
+             ================================================= -->
         <a th:href="@{/profile/edit}"
            class="edit-profile-btn">
 
@@ -73,12 +160,24 @@
              ================================================= -->
         <section class="panel">
 
-            <h2>
-                Assigned courses
-            </h2>
+            <div class="profile-section-heading">
+
+                <div>
+
+                    <p class="profile-section-eyebrow">
+                        COURSES
+                    </p>
+
+                    <h2>
+                        Assigned courses
+                    </h2>
+
+                </div>
+
+            </div>
 
 
-            <!-- No courses -->
+            <!-- NO COURSES -->
             <div th:if="${#lists.isEmpty(courses)}"
                  class="empty">
 
@@ -87,13 +186,16 @@
             </div>
 
 
-            <!-- Assigned courses -->
-            <div class="chips">
+            <!-- ASSIGNED COURSES -->
+            <div class="chips"
+                 th:if="${!#lists.isEmpty(courses)}">
 
                 <span class="chip"
                       th:each="c : ${courses}"
                       th:text="${c.code + ' · ' + c.name}">
+
                     CS000 · Example Course
+
                 </span>
 
             </div>
@@ -107,9 +209,21 @@
              ================================================= -->
         <section class="panel">
 
-            <h2>
-                Add timetable / busy time
-            </h2>
+            <div class="profile-section-heading">
+
+                <div>
+
+                    <p class="profile-section-eyebrow">
+                        AVAILABILITY
+                    </p>
+
+                    <h2>
+                        Add timetable / busy time
+                    </h2>
+
+                </div>
+
+            </div>
 
 
             <form th:action="@{/profile/schedule}"
@@ -118,7 +232,9 @@
                   class="form-grid compact">
 
 
-                <!-- DATE -->
+                <!-- =================================================
+                     DATE
+                     ================================================= -->
                 <label>
 
                     Date
@@ -131,7 +247,9 @@
 
 
 
-                <!-- BUSY TIME TYPE -->
+                <!-- =================================================
+                     BUSY TIME TYPE
+                     ================================================= -->
                 <label>
 
                     Busy-time type
@@ -148,7 +266,9 @@
                         <option th:each="c : ${courses}"
                                 th:value="${c.code + ' Lecture'}"
                                 th:text="${c.code + ' · Lecture'}">
+
                             Course Lecture
+
                         </option>
 
 
@@ -177,7 +297,9 @@
 
 
 
-                <!-- START TIME -->
+                <!-- =================================================
+                     START TIME
+                     ================================================= -->
                 <label>
 
                     Start
@@ -190,7 +312,9 @@
 
 
 
-                <!-- END TIME -->
+                <!-- =================================================
+                     END TIME
+                     ================================================= -->
                 <label>
 
                     End
@@ -203,7 +327,9 @@
 
 
 
-                <!-- SUBMIT BUTTON -->
+                <!-- =================================================
+                     SUBMIT BUTTON
+                     ================================================= -->
                 <div class="span-2">
 
                     <button type="submit"
@@ -226,11 +352,29 @@
     <!-- =====================================================
          TIMETABLE / BUSY ENTRIES
          ===================================================== -->
-    <section class="panel table-wrap">
+    <section class="panel table-wrap profile-timetable-panel">
 
-        <h2>
-            My timetable / busy entries
-        </h2>
+
+        <div class="profile-section-heading">
+
+            <div>
+
+                <p class="profile-section-eyebrow">
+                    MY AVAILABILITY
+                </p>
+
+                <h2>
+                    My timetable / busy entries
+                </h2>
+
+                <p>
+                    These times are used to help prevent booking clashes.
+                </p>
+
+            </div>
+
+        </div>
+
 
 
         <table>
@@ -252,6 +396,7 @@
                 </th>
 
                 <th>
+                    Action
                 </th>
 
             </tr>
@@ -262,7 +407,9 @@
             <tbody>
 
 
-            <!-- EXISTING ENTRIES -->
+            <!-- =================================================
+                 EXISTING ENTRIES
+                 ================================================= -->
             <tr th:each="s : ${entries}">
 
                 <td th:text="${s.date}">
@@ -300,13 +447,16 @@
 
 
 
-            <!-- EMPTY TABLE -->
+            <!-- =================================================
+                 EMPTY TABLE
+                 ================================================= -->
             <tr th:if="${#lists.isEmpty(entries)}">
 
                 <td colspan="4"
                     class="empty">
 
-                    No timetable entries. Add your lecture/busy times so booking clashes can be blocked.
+                    No timetable entries. Add your lecture or busy
+                    times so booking clashes can be blocked.
 
                 </td>
 
@@ -318,6 +468,7 @@
         </table>
 
     </section>
+
 
 </main>
 

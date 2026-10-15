@@ -6,14 +6,20 @@
 
 <body>
 
-<!-- Shared Navigation -->
+<!-- =========================================================
+     SHARED NAVIGATION
+     ========================================================= -->
 <nav th:replace="~{fragments :: nav}"></nav>
 
 
 <main class="container edit-profile-page">
 
-    <!-- Alerts -->
+
+    <!-- =====================================================
+         ALERTS
+         ===================================================== -->
     <div th:replace="~{fragments :: alerts}"></div>
+
 
 
     <!-- =====================================================
@@ -54,33 +60,53 @@
          ===================================================== -->
     <section class="panel edit-profile-summary">
 
+
+        <!-- PROFILE AVATAR -->
         <div class="edit-profile-avatar">
 
-            <span th:text="${#strings.substring(user.name,0,1)}">
+            <!-- Uploaded picture -->
+            <img th:if="${user.profilePicture != null and !#strings.isEmpty(user.profilePicture)}"
+                 th:src="@{'/uploads/profile-pictures/' + ${user.profilePicture}}"
+                 alt="Profile picture"
+                 class="edit-profile-avatar-image">
+
+
+            <!-- Initial when no picture -->
+            <span th:unless="${user.profilePicture != null and !#strings.isEmpty(user.profilePicture)}"
+                  th:text="${#strings.substring(user.name,0,1)}">
+
                 A
+
             </span>
 
         </div>
 
 
+
+        <!-- USER DETAILS -->
         <div class="edit-profile-identity">
 
             <h2 th:text="${user.name}">
-                Ana Singh
+                Austin Anand
             </h2>
+
 
             <div class="edit-profile-meta">
 
                 <span class="edit-profile-role"
                       th:text="${user.role}">
+
                     STUDENT
+
                 </span>
+
 
                 <span th:text="${user.userCode}">
                     S12345678
                 </span>
 
             </div>
+
 
             <p th:text="${user.email}">
                 student1@usp.ac.fj
@@ -89,12 +115,17 @@
         </div>
 
 
+
+        <!-- ACCOUNT STATUS -->
         <div class="edit-profile-account-state">
 
             <span class="edit-status-dot"></span>
 
+
             <span th:text="${user.active ? 'Active Account' : 'Inactive Account'}">
+
                 Active Account
+
             </span>
 
         </div>
@@ -131,15 +162,97 @@
 
 
 
+        <!-- =================================================
+             PROFILE FORM
+             ================================================= -->
         <form th:action="@{/profile/update}"
               method="post"
+              enctype="multipart/form-data"
               class="edit-profile-form">
+
+
+
+            <!-- =================================================
+                 PROFILE PICTURE
+                 ================================================= -->
+            <div class="edit-form-row edit-photo-row">
+
+
+                <div class="edit-form-label">
+
+                    <label for="profilePicture">
+                        Profile Picture
+                    </label>
+
+                    <span>
+                        Upload a JPG, JPEG, PNG or WEBP image up to 5 MB
+                    </span>
+
+                </div>
+
+
+
+                <div class="edit-form-control">
+
+                    <div class="profile-picture-upload">
+
+
+                        <!-- IMAGE PREVIEW -->
+                        <div class="profile-picture-preview">
+
+
+                            <!-- Existing picture -->
+                            <img id="profilePicturePreview"
+                                 th:if="${user.profilePicture != null and !#strings.isEmpty(user.profilePicture)}"
+                                 th:src="@{'/uploads/profile-pictures/' + ${user.profilePicture}}"
+                                 alt="Current profile picture">
+
+
+                            <!-- Initial when no picture -->
+                            <div id="profilePicturePlaceholder"
+                                 th:unless="${user.profilePicture != null and !#strings.isEmpty(user.profilePicture)}"
+                                 class="profile-picture-placeholder">
+
+                                <span th:text="${#strings.substring(user.name,0,1)}">
+                                    A
+                                </span>
+
+                            </div>
+
+                        </div>
+
+
+
+                        <!-- UPLOAD CONTROLS -->
+                        <div class="profile-picture-upload-controls">
+
+                            <input id="profilePicture"
+                                   name="profilePicture"
+                                   type="file"
+                                   accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+                                   onchange="previewProfilePicture(this)">
+
+
+                            <small>
+                                JPG, JPEG, PNG or WEBP.
+                                Maximum file size: 5 MB.
+                            </small>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
 
 
             <!-- =================================================
                  FULL NAME
                  ================================================= -->
             <div class="edit-form-row">
+
 
                 <div class="edit-form-label">
 
@@ -152,6 +265,7 @@
                     </span>
 
                 </div>
+
 
 
                 <div class="edit-form-control">
@@ -174,6 +288,7 @@
                  ================================================= -->
             <div class="edit-form-row">
 
+
                 <div class="edit-form-label">
 
                     <label for="userCode">
@@ -185,6 +300,7 @@
                     </span>
 
                 </div>
+
 
 
                 <div class="edit-form-control">
@@ -202,9 +318,10 @@
 
 
             <!-- =================================================
-                 EMAIL
+                 EMAIL ADDRESS
                  ================================================= -->
             <div class="edit-form-row">
+
 
                 <div class="edit-form-label">
 
@@ -217,6 +334,7 @@
                     </span>
 
                 </div>
+
 
 
                 <div class="edit-form-control">
@@ -238,6 +356,7 @@
                  ================================================= -->
             <div class="edit-form-row">
 
+
                 <div class="edit-form-label">
 
                     <label for="department">
@@ -249,6 +368,7 @@
                     </span>
 
                 </div>
+
 
 
                 <div class="edit-form-control">
@@ -270,6 +390,7 @@
                  ================================================= -->
             <div class="edit-form-row">
 
+
                 <div class="edit-form-label">
 
                     <label for="role">
@@ -281,6 +402,7 @@
                     </span>
 
                 </div>
+
 
 
                 <div class="edit-form-control">
@@ -302,6 +424,7 @@
                  ================================================= -->
             <div class="edit-form-row">
 
+
                 <div class="edit-form-label">
 
                     <label>
@@ -315,15 +438,20 @@
                 </div>
 
 
+
                 <div class="edit-form-control">
 
                     <div class="edit-account-status"
                          th:classappend="${user.active ? ' active' : ' inactive'}">
 
+
                         <span class="edit-status-dot"></span>
 
+
                         <strong th:text="${user.active ? 'Active Account' : 'Inactive Account'}">
+
                             Active Account
+
                         </strong>
 
                     </div>
@@ -339,9 +467,11 @@
                  ================================================= -->
             <div class="edit-profile-note">
 
+
                 <div class="edit-note-symbol">
                     i
                 </div>
+
 
                 <div>
 
@@ -350,8 +480,9 @@
                     </strong>
 
                     <p>
-                        Email address, Student/Staff ID and role cannot be changed here.
-                        Contact the system administrator if these details are incorrect.
+                        Email address, Student/Staff ID and role cannot
+                        be changed here. Contact the system administrator
+                        if these details are incorrect.
                     </p>
 
                 </div>
@@ -364,6 +495,7 @@
                  ACTION BUTTONS
                  ================================================= -->
             <div class="edit-profile-actions">
+
 
                 <a th:href="@{/profile}"
                    class="edit-cancel-btn">
@@ -394,35 +526,214 @@
          ===================================================== -->
     <section class="panel edit-security-panel">
 
+
         <div>
 
             <p class="edit-section-eyebrow">
                 SECURITY
             </p>
 
+
             <h2>
                 Account Security
             </h2>
 
+
             <p>
-                Your login credentials and protected account information are secured.
+                Keep your SpaceHub account secure by regularly
+                updating your password.
             </p>
 
         </div>
 
 
-        <div class="edit-security-badge">
 
-            <span class="edit-security-dot"></span>
+        <a th:href="@{/profile/change-password}"
+           class="change-password-link">
 
-            Secured account
 
-        </div>
+            <span class="change-password-lock">
+                🔒
+            </span>
+
+
+            <span>
+                Change Password
+            </span>
+
+
+            <span class="change-password-arrow">
+                →
+            </span>
+
+        </a>
 
     </section>
 
 
 </main>
+
+
+
+<!-- =========================================================
+     PROFILE PICTURE PREVIEW SCRIPT
+     ========================================================= -->
+<script>
+
+    function previewProfilePicture(input) {
+
+        if (!input.files || !input.files[0]) {
+
+            return;
+        }
+
+
+        const file =
+            input.files[0];
+
+
+
+        /* =====================================================
+           FILE SIZE VALIDATION
+           ===================================================== */
+
+        if (
+            file.size >
+            5 * 1024 * 1024
+        ) {
+
+            alert(
+                "Profile picture must be 5 MB or smaller."
+            );
+
+            input.value = "";
+
+            return;
+        }
+
+
+
+        /* =====================================================
+           FILE TYPE VALIDATION
+           ===================================================== */
+
+        const allowedTypes = [
+
+            "image/jpeg",
+
+            "image/png",
+
+            "image/webp"
+
+        ];
+
+
+        if (
+            !allowedTypes.includes(
+                file.type
+            )
+        ) {
+
+            alert(
+                "Please select a JPG, JPEG, PNG or WEBP image."
+            );
+
+            input.value = "";
+
+            return;
+        }
+
+
+
+        /* =====================================================
+           CREATE IMAGE PREVIEW
+           ===================================================== */
+
+        const reader =
+            new FileReader();
+
+
+        reader.onload =
+            function (event) {
+
+
+                let preview =
+                    document.getElementById(
+                        "profilePicturePreview"
+                    );
+
+
+                const placeholder =
+                    document.getElementById(
+                        "profilePicturePlaceholder"
+                    );
+
+
+
+                /*
+                 * User currently has no profile picture,
+                 * so create the image element.
+                 */
+
+                if (!preview) {
+
+                    preview =
+                        document.createElement(
+                            "img"
+                        );
+
+
+                    preview.id =
+                        "profilePicturePreview";
+
+
+                    preview.alt =
+                        "Profile picture preview";
+
+
+                    document
+                        .querySelector(
+                            ".profile-picture-preview"
+                        )
+                        .appendChild(
+                            preview
+                        );
+
+                }
+
+
+
+                /* Display selected image */
+
+                preview.src =
+                    event.target.result;
+
+
+                preview.style.display =
+                    "block";
+
+
+
+                /* Hide initial placeholder */
+
+                if (placeholder) {
+
+                    placeholder.style.display =
+                        "none";
+
+                }
+
+            };
+
+
+        reader.readAsDataURL(
+            file
+        );
+
+    }
+
+</script>
+
 
 </body>
 </html>
