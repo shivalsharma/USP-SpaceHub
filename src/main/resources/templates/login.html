@@ -1,144 +1,481 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org">
+
 <head th:replace="~{fragments :: head('Sign in')}"></head>
+
+
 <body class="login-page">
+
 
 <div class="login-shell">
 
-    <!-- LEFT SIDE -->
+
+    <!-- =====================================================
+         LEFT SIDE
+         ===================================================== -->
+
     <section class="login-brand-panel">
+
+
         <div class="login-brand-top">
+
+
             <div class="login-logo-card">
-                <span class="brand-mark">USP</span>
+
+                <span class="brand-mark">
+                    USP
+                </span>
+
+
                 <div class="brand-copy">
-                    <small>USP</small>
-                    <h1>SpaceHub</h1>
+
+                    <small>
+                        USP
+                    </small>
+
+                    <h1>
+                        SpaceHub
+                    </h1>
+
                 </div>
+
             </div>
 
-            <div class="platform-pill">SMART CAMPUS PLATFORM</div>
+
+            <div class="platform-pill">
+                SMART CAMPUS PLATFORM
+            </div>
+
+
         </div>
+
+
+
+        <!-- =================================================
+             BRAND CONTENT
+             ================================================= -->
 
         <div class="login-brand-content">
-            <h2>Smarter spaces.<br>Better learning.</h2>
+
+
+            <h2>
+                Smarter spaces.<br>
+                Better learning.
+            </h2>
+
+
             <p>
-                A centralized platform for managing classrooms, computer
-                laboratories and university spaces.
+                A centralized platform for managing classrooms,
+                computer laboratories and university spaces.
             </p>
+
+
+
+            <!-- =============================================
+                 FEATURE LIST
+                 ============================================= -->
 
             <div class="login-feature-list">
-                <div class="login-feature-item">
-                    <div class="feature-icon">⌕</div>
-                    <div>
-                        <h3>Smart Room Discovery</h3>
-                        <p>Find suitable rooms and laboratories quickly.</p>
-                    </div>
-                </div>
+
+
+                <!-- SMART ROOM DISCOVERY -->
 
                 <div class="login-feature-item">
-                    <div class="feature-icon">▣</div>
-                    <div>
-                        <h3>Resource Management</h3>
-                        <p>Manage rooms, facilities and users efficiently.</p>
+
+                    <div class="feature-icon">
+                        ⌕
                     </div>
+
+                    <div>
+
+                        <h3>
+                            Smart Room Discovery
+                        </h3>
+
+                        <p>
+                            Find suitable rooms and laboratories quickly.
+                        </p>
+
+                    </div>
+
                 </div>
 
+
+
+                <!-- RESOURCE MANAGEMENT -->
+
                 <div class="login-feature-item">
-                    <div class="feature-icon">✓</div>
-                    <div>
-                        <h3>Role-Based Access</h3>
-                        <p>Secure access for students, lecturers and administrators.</p>
+
+                    <div class="feature-icon">
+                        ▣
                     </div>
+
+                    <div>
+
+                        <h3>
+                            Resource Management
+                        </h3>
+
+                        <p>
+                            Manage rooms, facilities and users efficiently.
+                        </p>
+
+                    </div>
+
                 </div>
+
+
+
+                <!-- ROLE BASED ACCESS -->
+
+                <div class="login-feature-item">
+
+                    <div class="feature-icon">
+                        ✓
+                    </div>
+
+                    <div>
+
+                        <h3>
+                            Role-Based Access
+                        </h3>
+
+                        <p>
+                            Secure access for students, lecturers
+                            and administrators.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
             </div>
+
+
         </div>
+
+
+
+        <!-- =================================================
+             LEFT FOOTER
+             ================================================= -->
 
         <div class="login-brand-footer">
+
             The University of the South Pacific
+
         </div>
+
+
     </section>
 
-    <!-- RIGHT SIDE -->
+
+
+    <!-- =====================================================
+         RIGHT SIDE
+         ===================================================== -->
+
     <section class="login-form-panel">
+
+
         <div class="login-form-overlay"></div>
 
+
+
         <div class="login-form-card">
+
+
+            <!-- =================================================
+                 LOGIN HEADING
+                 ================================================= -->
+
             <div class="login-heading">
-                <p class="eyebrow">WELCOME BACK</p>
-                <h2>Sign in to SpaceHub</h2>
-                <p>Enter your USP account details to continue.</p>
+
+                <p class="eyebrow">
+                    WELCOME BACK
+                </p>
+
+
+                <h2>
+                    Sign in to SpaceHub
+                </h2>
+
+
+                <p>
+                    Enter your USP account details to continue.
+                </p>
+
             </div>
 
-            <div th:if="${param.error}" class="alert error">
+
+
+            <!-- =================================================
+                 INVALID LOGIN
+                 ================================================= -->
+
+            <div th:if="${param.error}"
+                 class="alert error">
+
                 Invalid credentials or inactive account.
+
             </div>
 
-            <div th:if="${param.logout}" class="alert success">
+
+
+            <!-- =================================================
+                 LOGOUT SUCCESS
+                 ================================================= -->
+
+            <div th:if="${param.logout}"
+                 class="alert success">
+
                 You have signed out successfully.
+
             </div>
 
-            <form th:action="@{/login}" method="post" class="stack">
+
+
+            <!-- =================================================
+                 PASSWORD RESET SUCCESS
+                 ================================================= -->
+
+            <div th:if="${success != null}"
+                 class="alert success"
+                 th:text="${success}">
+
+                Your password has been reset successfully.
+                You can now sign in with your new password.
+
+            </div>
+
+
+
+            <!-- =================================================
+                 LOGIN FORM
+                 ================================================= -->
+
+            <form th:action="@{/login}"
+                  method="post"
+                  class="stack">
+
+
+                <!-- =============================================
+                     EMAIL ADDRESS
+                     ============================================= -->
+
                 <label>
+
                     Email address
+
+
                     <div class="input-wrap">
-                        <span class="input-icon">@</span>
-                        <input name="username" type="email" placeholder="name@usp.ac.fj" required autofocus>
+
+                        <span class="input-icon">
+                            @
+                        </span>
+
+
+                        <input name="username"
+                               type="email"
+                               placeholder="name@usp.ac.fj"
+                               autocomplete="email"
+                               required
+                               autofocus>
+
                     </div>
+
                 </label>
+
+
+
+                <!-- =============================================
+                     PASSWORD
+                     ============================================= -->
 
                 <label>
+
                     Password
+
+
                     <div class="input-wrap password-wrap">
-                        <span class="input-icon">•</span>
-                        <input id="password" name="password" type="password" required>
-                        <button type="button" class="password-toggle" onclick="togglePassword()">Show</button>
+
+                        <span class="input-icon">
+                            •
+                        </span>
+
+
+                        <input id="password"
+                               name="password"
+                               type="password"
+                               autocomplete="current-password"
+                               required>
+
+
+                        <button type="button"
+                                class="password-toggle"
+                                onclick="togglePassword()">
+
+                            Show
+
+                        </button>
+
                     </div>
+
                 </label>
 
-                <button class="btn primary login-submit-btn" type="submit">
-                    Sign in <span>→</span>
+
+
+                <!-- =============================================
+                     SIGN IN BUTTON
+                     ============================================= -->
+
+                <button class="btn primary login-submit-btn"
+                        type="submit">
+
+                    Sign in
+
+                    <span>
+                        →
+                    </span>
+
                 </button>
+
+
             </form>
 
-            <details class="demo">
-                <summary>Demo accounts</summary>
-                <div class="demo-list">
-                    <p><b>Admin:</b> admin@usp.ac.fj / Admin@123</p>
-                    <p><b>IT Admin:</b> itadmin@usp.ac.fj / ITAdmin@123</p>
-                    <p><b>Lecturers:</b> lecturer1@usp.ac.fj or lecturer2@usp.ac.fj / Lecturer@123</p>
-                    <p><b>Student:</b> student1@usp.ac.fj / Student@123</p>
-                </div>
-            </details>
+
+
+            <!-- =================================================
+                 FORGOT PASSWORD
+                 ================================================= -->
 
             <p class="login-help">
-                Having trouble signing in?
-                <a href="#">Contact the system administrator</a>
+
+                <a th:href="@{/forgot-password}">
+                    Forgot your password?
+                </a>
+
             </p>
 
+
+
+            <!-- =================================================
+                 DEMO ACCOUNTS
+                 ================================================= -->
+
+            <details class="demo">
+
+
+                <summary>
+                    Demo accounts
+                </summary>
+
+
+                <div class="demo-list">
+
+
+                    <p>
+                        <b>Admin:</b>
+                        admin@usp.ac.fj / Admin@123
+                    </p>
+
+
+                    <p>
+                        <b>IT Admin:</b>
+                        itadmin@usp.ac.fj / ITAdmin@123
+                    </p>
+
+
+                    <p>
+                        <b>Lecturers:</b>
+                        lecturer1@usp.ac.fj or lecturer2@usp.ac.fj
+                        / Lecturer@123
+                    </p>
+
+
+                    <p>
+                        <b>Student:</b>
+                        student1@usp.ac.fj / Student@123
+                    </p>
+
+
+                </div>
+
+
+            </details>
+            
+            <!-- =================================================
+                 FOOTER
+                 ================================================= -->
+
             <div class="login-footer">
-                <span>USP SpaceHub</span>
-                <span>•</span>
-                <span>Smart Classroom & Computer-Lab Booking</span>
+
+                <span>
+                    USP SpaceHub
+                </span>
+
+                <span>
+                    •
+                </span>
+
+                <span>
+                    Smart Classroom &amp; Computer-Lab Booking
+                </span>
+
             </div>
+
+
         </div>
+
+
     </section>
+
 
 </div>
 
+
+
+<!-- =========================================================
+     PASSWORD VISIBILITY SCRIPT
+     ========================================================= -->
+
 <script>
+
     function togglePassword() {
-        const password = document.getElementById("password");
-        const button = document.querySelector(".password-toggle");
+
+        const password =
+            document.getElementById("password");
+
+
+        const button =
+            document.querySelector(".password-toggle");
+
 
         if (password.type === "password") {
-            password.type = "text";
-            button.textContent = "Hide";
+
+            password.type =
+                "text";
+
+            button.textContent =
+                "Hide";
+
         } else {
-            password.type = "password";
-            button.textContent = "Show";
+
+            password.type =
+                "password";
+
+            button.textContent =
+                "Show";
+
         }
+
     }
+
 </script>
 
+
 </body>
+
 </html>

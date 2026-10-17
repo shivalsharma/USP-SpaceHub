@@ -33,13 +33,17 @@ public class SecurityConfig {
        Password = password_hash
        Enabled  = active
        ========================================================= */
+
     @Bean
     public UserDetailsService userDetailsService(
-            DataSource dataSource) {
+            DataSource dataSource
+    ) {
 
 
         JdbcUserDetailsManager manager =
-                new JdbcUserDetailsManager(dataSource);
+                new JdbcUserDetailsManager(
+                        dataSource
+                );
 
 
         /*
@@ -86,6 +90,7 @@ public class SecurityConfig {
     /* =========================================================
        PASSWORD ENCODER
        ========================================================= */
+
     @Bean
     public PasswordEncoder passwordEncoder() {
 
@@ -97,10 +102,12 @@ public class SecurityConfig {
     /* =========================================================
        AUTHENTICATION PROVIDER
        ========================================================= */
+
     @Bean
     public AuthenticationProvider authenticationProvider(
             UserDetailsService userDetailsService,
-            PasswordEncoder passwordEncoder) {
+            PasswordEncoder passwordEncoder
+    ) {
 
 
         DaoAuthenticationProvider provider =
@@ -122,27 +129,33 @@ public class SecurityConfig {
     /* =========================================================
        SECURITY FILTER CHAIN / RBAC
        ========================================================= */
+
     @Bean
     public SecurityFilterChain securityFilterChain(
             HttpSecurity http,
-            AuthenticationProvider authenticationProvider)
-            throws Exception {
+            AuthenticationProvider authenticationProvider
+    ) throws Exception {
 
 
         http
 
-                /*
-                 * Use our database authentication provider.
-                 */
+
+                /* =================================================
+                   AUTHENTICATION PROVIDER
+                   ================================================= */
+
                 .authenticationProvider(
                         authenticationProvider
                 )
 
 
+
                 /* =================================================
                    ROLE-BASED ACCESS CONTROL
                    ================================================= */
+
                 .authorizeHttpRequests(auth -> auth
+
 
 
                         /* =========================================
@@ -150,13 +163,43 @@ public class SecurityConfig {
                            =========================================
                            These can be accessed without logging in.
                            ========================================= */
+
                         .requestMatchers(
+
                                 "/login",
+
+                                /*
+                                 * Forgot Password page.
+                                 *
+                                 * GET  /forgot-password
+                                 * POST /forgot-password
+                                 */
+                                "/forgot-password",
+                                "/forgot-password/**",
+
+                                /*
+                                 * Password Reset page.
+                                 *
+                                 * GET  /reset-password?token=...
+                                 * POST /reset-password
+                                 */
+                                "/reset-password",
+                                "/reset-password/**",
+
+                                /*
+                                 * Static resources.
+                                 */
                                 "/css/**",
                                 "/images/**",
                                 "/js/**",
+
                                 "/favicon.ico",
+
+                                /*
+                                 * Spring Boot error page.
+                                 */
                                 "/error"
+
                         )
                         .permitAll()
 
@@ -170,6 +213,7 @@ public class SecurityConfig {
                            LECTURER  = blocked
                            STUDENT   = blocked
                            ========================================= */
+
                         .requestMatchers(
                                 "/admin/users",
                                 "/admin/users/**"
@@ -189,6 +233,7 @@ public class SecurityConfig {
                            LECTURER  = blocked
                            STUDENT   = blocked
                            ========================================= */
+
                         .requestMatchers(
                                 "/admin/rooms",
                                 "/admin/rooms/**"
@@ -205,6 +250,7 @@ public class SecurityConfig {
                            =========================================
                            ADMIN only.
                            ========================================= */
+
                         .requestMatchers(
                                 "/admin/approvals",
                                 "/admin/approvals/**"
@@ -220,6 +266,7 @@ public class SecurityConfig {
                            =========================================
                            ADMIN only.
                            ========================================= */
+
                         .requestMatchers(
                                 "/admin/bookings",
                                 "/admin/bookings/**"
@@ -235,6 +282,7 @@ public class SecurityConfig {
                            =========================================
                            ADMIN only.
                            ========================================= */
+
                         .requestMatchers(
                                 "/admin/courses",
                                 "/admin/courses/**"
@@ -250,6 +298,7 @@ public class SecurityConfig {
                            =========================================
                            ADMIN only.
                            ========================================= */
+
                         .requestMatchers(
                                 "/admin/reports",
                                 "/admin/reports/**"
@@ -265,6 +314,7 @@ public class SecurityConfig {
                            =========================================
                            ADMIN only.
                            ========================================= */
+
                         .requestMatchers(
                                 "/admin/audit"
                         )
@@ -279,6 +329,7 @@ public class SecurityConfig {
                            =========================================
                            ADMIN only.
                            ========================================= */
+
                         .requestMatchers(
                                 "/admin/settings",
                                 "/admin/settings/**"
@@ -296,6 +347,7 @@ public class SecurityConfig {
 
                            ADMIN only.
                            ========================================= */
+
                         .requestMatchers(
                                 "/admin",
                                 "/admin/**"
@@ -318,8 +370,10 @@ public class SecurityConfig {
 
                            All logged-in roles can access these.
                            ========================================= */
+
                         .anyRequest()
                         .authenticated()
+
                 )
 
 
@@ -327,7 +381,9 @@ public class SecurityConfig {
                 /* =================================================
                    LOGIN
                    ================================================= */
+
                 .formLogin(form -> form
+
 
                         /*
                          * Custom SpaceHub login page.
@@ -346,11 +402,8 @@ public class SecurityConfig {
 
 
                         /*
-                         * All users go to the common dashboard
-                         * after successful login.
-                         *
-                         * Later we will make the dashboard
-                         * role-aware.
+                         * Successful login goes to the common
+                         * role-aware dashboard.
                          */
                         .defaultSuccessUrl(
                                 "/dashboard",
@@ -367,6 +420,7 @@ public class SecurityConfig {
 
 
                         .permitAll()
+
                 )
 
 
@@ -374,7 +428,9 @@ public class SecurityConfig {
                 /* =================================================
                    LOGOUT
                    ================================================= */
+
                 .logout(logout -> logout
+
 
                         .logoutUrl(
                                 "/logout"
@@ -403,6 +459,7 @@ public class SecurityConfig {
 
 
                         .permitAll()
+
                 );
 
 

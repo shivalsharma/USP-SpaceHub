@@ -239,7 +239,7 @@ public class ProfileController {
 
 
         /* -----------------------------------------------------
-           Validate name
+           VALIDATE NAME
            ----------------------------------------------------- */
 
         if (
@@ -927,11 +927,33 @@ public class ProfileController {
         );
 
 
+
+        /* -----------------------------------------------------
+           CLEAR TEMPORARY PASSWORD REQUIREMENT
+           ----------------------------------------------------- */
+
+        /*
+         * If this account was created with an automatically
+         * generated temporary password, a successful password
+         * change completes the first-login password process.
+         *
+         * For normal existing users this simply remains false.
+         */
+        user.setMustChangePassword(
+                false
+        );
+
+
         /*
          * Only the encoded BCrypt password is stored.
          *
          * The plain current/new passwords are never
          * written to the database.
+         *
+         * Because this method is transactional, Hibernate
+         * persists both the new password hash and the updated
+         * must_change_password value when the transaction
+         * completes.
          */
 
 

@@ -5,6 +5,8 @@ import fj.ac.usp.spacehub.model.UserAccount;
 import fj.ac.usp.spacehub.model.UserRole;
 import fj.ac.usp.spacehub.repository.UserRepository;
 import fj.ac.usp.spacehub.service.AuditService;
+import fj.ac.usp.spacehub.service.EmailService;
+import fj.ac.usp.spacehub.service.TemporaryPasswordService;
 
 import jakarta.validation.Valid;
 
@@ -40,17 +42,27 @@ import java.util.stream.Collectors;
 @RequestMapping("/admin/users")
 public class AdminUserController {
 
+
+    /* =========================================================
+       DEPENDENCIES
+       ========================================================= */
+
     private final UserRepository repo;
 
     private final PasswordEncoder encoder;
 
     private final AuditService audit;
 
+    private final EmailService emailService;
+
+    private final TemporaryPasswordService temporaryPasswordService;
+
 
 
     /* =========================================================
        USER MANAGEMENT LIST
        ========================================================= */
+
     @GetMapping
     public String list(
             @RequestParam(required = false)
@@ -64,7 +76,8 @@ public class AdminUserController {
 
             Authentication authentication,
 
-            Model model) {
+            Model model
+    ) {
 
 
         List<UserAccount> allUsers =
@@ -331,8 +344,11 @@ public class AdminUserController {
     /* =========================================================
        ADD USER
        ========================================================= */
+
     @GetMapping("/new")
-    public String create(Model model) {
+    public String create(
+            Model model
+    ) {
 
 
         UserForm form =
@@ -342,7 +358,9 @@ public class AdminUserController {
         /*
          * New users are active by default.
          */
-        form.setActive(true);
+        form.setActive(
+                true
+        );
 
 
         model.addAttribute(
@@ -351,7 +369,9 @@ public class AdminUserController {
         );
 
 
-        options(model);
+        options(
+                model
+        );
 
 
         return "admin/user-form";
@@ -362,15 +382,21 @@ public class AdminUserController {
     /* =========================================================
        EDIT USER
        ========================================================= */
+
     @GetMapping("/{id}/edit")
     public String edit(
-            @PathVariable Long id,
-            Model model) {
+            @PathVariable
+            Long id,
+
+            Model model
+    ) {
 
 
         UserAccount user =
                 repo
-                        .findById(id)
+                        .findById(
+                                id
+                        )
                         .orElseThrow();
 
 
@@ -429,7 +455,9 @@ public class AdminUserController {
         );
 
 
-        options(model);
+        options(
+                model
+        );
 
 
         return "admin/user-form";
@@ -440,6 +468,7 @@ public class AdminUserController {
     /* =========================================================
        SAVE USER
        ========================================================= */
+
     @PostMapping("/save")
     public String save(
             @Valid
@@ -450,76 +479,8 @@ public class AdminUserController {
 
             Model model,
 
-            RedirectAttributes redirectAttributes) {
-
-
-        /* =====================================================
-           NEW USER PASSWORD
-           ===================================================== */
-
-        if (
-
-                form.getId() == null
-
-                &&
-
-                (
-                        form.getPassword() == null
-
-                        ||
-
-                        form.getPassword()
-                                .length() < 8
-                )
-
-        ) {
-
-            bindingResult.rejectValue(
-
-                    "password",
-
-                    "password",
-
-                    "New users require a password of at least 8 characters"
-
-            );
-
-        }
-
-
-
-        /* =====================================================
-           PASSWORD LENGTH
-           ===================================================== */
-
-        if (
-
-                form.getPassword() != null
-
-                &&
-
-                !form.getPassword()
-                        .isBlank()
-
-                &&
-
-                form.getPassword()
-                        .length() < 8
-
-        ) {
-
-            bindingResult.rejectValue(
-
-                    "password",
-
-                    "password",
-
-                    "Password must be at least 8 characters"
-
-            );
-
-        }
-
+            RedirectAttributes redirectAttributes
+    ) {
 
 
         /* =====================================================
@@ -604,7 +565,10 @@ public class AdminUserController {
                 bindingResult.hasErrors()
         ) {
 
-            options(model);
+            options(
+                    model
+            );
+
 
             return "admin/user-form";
         }
@@ -622,12 +586,66 @@ public class AdminUserController {
         UserAccount user;
 
 
+        /*
+         * Only used while creating a new account.
+         *
+         * The plain temporary password is never written
+         * to the database.
+         */
+        String temporaryPassword =
+                null;
+
+
+
         if (newUser) {
+
 
             user =
                     new UserAccount();
 
+
+
+            /* -------------------------------------------------
+               GENERATE TEMPORARY PASSWORD
+               ------------------------------------------------- */
+
+            temporaryPassword =
+                    temporaryPasswordService.generate();
+
+
+
+            /* -------------------------------------------------
+               STORE ONLY BCRYPT HASH
+               ------------------------------------------------- */
+
+            user.setPasswordHash(
+
+                    encoder.encode(
+                            temporaryPassword
+                    )
+
+            );
+
+
+
+            /* -------------------------------------------------
+               FORCE PASSWORD CHANGE
+               ------------------------------------------------- */
+
+            /*
+             * A newly-created account is using a temporary
+             * password.
+             *
+             * The user must replace it with their own password
+             * after signing in.
+             */
+            user.setMustChangePassword(
+                    true
+            );
+
+
         } else {
+
 
             user =
                     repo
@@ -641,7 +659,7 @@ public class AdminUserController {
 
 
         /* =====================================================
-           UPDATE DETAILS
+           UPDATE USER DETAILS
            ===================================================== */
 
         user.setUserCode(
@@ -682,10 +700,28 @@ public class AdminUserController {
         );
 
 
+
+        /* =====================================================
+           DEPARTMENT
+           ===================================================== */
+
         user.setDepartment(
-                form.getDepartment()
+
+                form.getDepartment() == null
+
+                        ? null
+
+                        : form
+                                .getDepartment()
+                                .trim()
+
         );
 
+
+
+        /* =====================================================
+           BOOKING LIMITS
+           ===================================================== */
 
         user.setMaxDailyBookings(
                 form.getMaxDailyBookings()
@@ -699,37 +735,70 @@ public class AdminUserController {
 
 
         /* =====================================================
-           PASSWORD
+           SAVE USER
            ===================================================== */
 
-        if (
-
-                form.getPassword() != null
-
-                &&
-
-                !form.getPassword()
-                        .isBlank()
-
-        ) {
-
-            user.setPasswordHash(
-
-                    encoder.encode(
-                            form.getPassword()
-                    )
-
-            );
-
-        }
+        repo.save(
+                user
+        );
 
 
 
         /* =====================================================
-           SAVE USER
+           NEW USER WELCOME EMAIL
            ===================================================== */
 
-        repo.save(user);
+        if (newUser) {
+
+
+            try {
+
+
+                /*
+                 * Sends the temporary password to the user's
+                 * registered email address.
+                 */
+                emailService.sendNewAccountEmail(
+                        user,
+                        temporaryPassword
+                );
+
+
+            } catch (Exception exception) {
+
+
+                /*
+                 * If the welcome email cannot be sent, the user
+                 * would have no way of knowing the automatically
+                 * generated temporary password.
+                 *
+                 * Remove the newly-created account so that the
+                 * administrator can correct the email/SMTP
+                 * configuration and safely try again.
+                 */
+                repo.delete(
+                        user
+                );
+
+
+                redirectAttributes.addFlashAttribute(
+
+                        "error",
+
+                        "The user was not created because the welcome email "
+                                +
+                        "could not be sent. Check the email configuration "
+                                +
+                        "and try again."
+
+                );
+
+
+                return "redirect:/admin/users/new";
+
+            }
+
+        }
 
 
 
@@ -762,6 +831,10 @@ public class AdminUserController {
 
                         + user.isActive()
 
+                        + " mustChangePassword="
+
+                        + user.isMustChangePassword()
+
         );
 
 
@@ -776,7 +849,7 @@ public class AdminUserController {
 
                 newUser
 
-                        ? "User created successfully."
+                        ? "User created successfully and the temporary password was emailed."
 
                         : "User updated successfully."
 
@@ -791,18 +864,23 @@ public class AdminUserController {
     /* =========================================================
        DISABLE / REACTIVATE USER
        ========================================================= */
+
     @PostMapping("/{id}/toggle")
     public String toggle(
-            @PathVariable Long id,
+            @PathVariable
+            Long id,
 
             Authentication authentication,
 
-            RedirectAttributes redirectAttributes) {
+            RedirectAttributes redirectAttributes
+    ) {
 
 
         UserAccount user =
                 repo
-                        .findById(id)
+                        .findById(
+                                id
+                        )
                         .orElseThrow();
 
 
@@ -829,6 +907,7 @@ public class AdminUserController {
 
         ) {
 
+
             redirectAttributes.addFlashAttribute(
 
                     "error",
@@ -839,6 +918,7 @@ public class AdminUserController {
 
 
             return "redirect:/admin/users";
+
         }
 
 
@@ -852,7 +932,9 @@ public class AdminUserController {
         );
 
 
-        repo.save(user);
+        repo.save(
+                user
+        );
 
 
 
@@ -906,9 +988,11 @@ public class AdminUserController {
     /* =========================================================
        SEARCH HELPER
        ========================================================= */
+
     private boolean containsIgnoreCase(
             String field,
-            String search) {
+            String search
+    ) {
 
 
         return
@@ -919,7 +1003,9 @@ public class AdminUserController {
 
                 field
                         .toLowerCase()
-                        .contains(search);
+                        .contains(
+                                search
+                        );
     }
 
 
@@ -927,9 +1013,15 @@ public class AdminUserController {
     /* =========================================================
        FORM OPTIONS
        ========================================================= */
-    private void options(
-            Model model) {
 
+    private void options(
+            Model model
+    ) {
+
+
+        /* -----------------------------------------------------
+           USER ROLES
+           ----------------------------------------------------- */
 
         model.addAttribute(
 
@@ -940,6 +1032,10 @@ public class AdminUserController {
         );
 
 
+
+        /* -----------------------------------------------------
+           DEPARTMENTS
+           ----------------------------------------------------- */
 
         Set<String> departments =
                 new TreeSet<>(
@@ -970,6 +1066,10 @@ public class AdminUserController {
 
 
 
+        /*
+         * Add any departments already stored in the database
+         * so an existing/custom department is not lost.
+         */
         repo
                 .findAll()
 
@@ -998,12 +1098,10 @@ public class AdminUserController {
 
 
         model.addAttribute(
-
                 "departments",
-
                 departments
-
         );
+
     }
 
 }
