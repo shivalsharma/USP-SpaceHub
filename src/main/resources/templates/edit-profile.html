@@ -21,7 +21,6 @@
     <div th:replace="~{fragments :: alerts}"></div>
 
 
-
     <!-- =====================================================
          PAGE HEADER
          ===================================================== -->
@@ -54,7 +53,6 @@
     </section>
 
 
-
     <!-- =====================================================
          USER SUMMARY
          ===================================================== -->
@@ -64,14 +62,12 @@
         <!-- PROFILE AVATAR -->
         <div class="edit-profile-avatar">
 
-            <!-- Uploaded picture -->
             <img th:if="${user.profilePicture != null and !#strings.isEmpty(user.profilePicture)}"
                  th:src="@{'/uploads/profile-pictures/' + ${user.profilePicture}}"
                  alt="Profile picture"
                  class="edit-profile-avatar-image">
 
 
-            <!-- Initial when no picture -->
             <span th:unless="${user.profilePicture != null and !#strings.isEmpty(user.profilePicture)}"
                   th:text="${#strings.substring(user.name,0,1)}">
 
@@ -80,7 +76,6 @@
             </span>
 
         </div>
-
 
 
         <!-- USER DETAILS -->
@@ -115,12 +110,10 @@
         </div>
 
 
-
         <!-- ACCOUNT STATUS -->
         <div class="edit-profile-account-state">
 
             <span class="edit-status-dot"></span>
-
 
             <span th:text="${user.active ? 'Active Account' : 'Inactive Account'}">
 
@@ -131,7 +124,6 @@
         </div>
 
     </section>
-
 
 
     <!-- =====================================================
@@ -161,15 +153,14 @@
         </div>
 
 
-
         <!-- =================================================
              PROFILE FORM
              ================================================= -->
         <form th:action="@{/profile/update}"
               method="post"
               enctype="multipart/form-data"
-              class="edit-profile-form">
-
+              class="edit-profile-form"
+              id="editProfileForm">
 
 
             <!-- =================================================
@@ -185,11 +176,10 @@
                     </label>
 
                     <span>
-                        Upload a JPG, JPEG, PNG or WEBP image up to 5 MB
+                        Upload, preview, crop and resize your profile image.
                     </span>
 
                 </div>
-
 
 
                 <div class="edit-form-control">
@@ -197,24 +187,43 @@
                     <div class="profile-picture-upload">
 
 
-                        <!-- IMAGE PREVIEW -->
-                        <div class="profile-picture-preview">
+                        <!-- =================================================
+                             FINAL PROFILE PICTURE PREVIEW
+                             ================================================= -->
+                        <div class="profile-picture-final-preview">
+
+                            <div class="profile-picture-preview">
 
 
-                            <!-- Existing picture -->
-                            <img id="profilePicturePreview"
-                                 th:if="${user.profilePicture != null and !#strings.isEmpty(user.profilePicture)}"
-                                 th:src="@{'/uploads/profile-pictures/' + ${user.profilePicture}}"
-                                 alt="Current profile picture">
+                                <!-- Existing picture -->
+                                <img id="profilePicturePreview"
+                                     th:if="${user.profilePicture != null and !#strings.isEmpty(user.profilePicture)}"
+                                     th:src="@{'/uploads/profile-pictures/' + ${user.profilePicture}}"
+                                     alt="Current profile picture">
 
 
-                            <!-- Initial when no picture -->
-                            <div id="profilePicturePlaceholder"
-                                 th:unless="${user.profilePicture != null and !#strings.isEmpty(user.profilePicture)}"
-                                 class="profile-picture-placeholder">
+                                <!-- Fallback initial -->
+                                <div id="profilePicturePlaceholder"
+                                     th:unless="${user.profilePicture != null and !#strings.isEmpty(user.profilePicture)}"
+                                     class="profile-picture-placeholder">
 
-                                <span th:text="${#strings.substring(user.name,0,1)}">
-                                    A
+                                    <span th:text="${#strings.substring(user.name,0,1)}">
+                                        A
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="profile-picture-final-info">
+
+                                <strong>
+                                    Final profile preview
+                                </strong>
+
+                                <span id="profilePictureStatus">
+                                    Your current profile picture is shown here.
                                 </span>
 
                             </div>
@@ -222,21 +231,232 @@
                         </div>
 
 
-
-                        <!-- UPLOAD CONTROLS -->
+                        <!-- =================================================
+                             FILE SELECTOR
+                             ================================================= -->
                         <div class="profile-picture-upload-controls">
 
                             <input id="profilePicture"
                                    name="profilePicture"
                                    type="file"
                                    accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
-                                   onchange="previewProfilePicture(this)">
+                                   onchange="prepareProfilePictureCrop(this)">
 
 
                             <small>
                                 JPG, JPEG, PNG or WEBP.
-                                Maximum file size: 5 MB.
+                                Maximum original file size: 5 MB.
                             </small>
+
+
+                            <small>
+                                A 1:1 square ratio is recommended because
+                                SpaceHub displays profile pictures as circular avatars.
+                            </small>
+
+                        </div>
+
+
+                        <!-- =================================================
+                             IMAGE CROPPER
+                             ================================================= -->
+                        <div id="profileCropper"
+                             class="profile-cropper"
+                             hidden>
+
+
+                            <div class="profile-cropper-header">
+
+                                <div>
+
+                                    <h3>
+                                        Crop profile picture
+                                    </h3>
+
+                                    <p>
+                                        Drag the image to reposition it,
+                                        adjust the zoom and apply the crop.
+                                    </p>
+
+                                </div>
+
+
+                                <button type="button"
+                                        class="profile-crop-cancel"
+                                        onclick="cancelProfilePictureCrop()">
+
+                                    Cancel new image
+
+                                </button>
+
+                            </div>
+
+
+                            <!-- =============================================
+                                 CROP OPTIONS
+                                 ============================================= -->
+                            <div class="profile-crop-options">
+
+
+                                <label>
+
+                                    Crop Ratio
+
+                                    <select id="profileCropRatio"
+                                            onchange="changeProfileCropRatio()">
+
+                                        <option value="1"
+                                                selected>
+
+                                            1:1 Square — Recommended
+
+                                        </option>
+
+
+                                        <option value="0.8">
+
+                                            4:5 Portrait
+
+                                        </option>
+
+
+                                        <option value="0.75">
+
+                                            3:4 Portrait
+
+                                        </option>
+
+
+                                        <option value="1.7777777778">
+
+                                            16:9 Landscape
+
+                                        </option>
+
+                                    </select>
+
+                                </label>
+
+
+                                <label>
+
+                                    Output Size
+
+                                    <select id="profileCropSize"
+                                            onchange="markProfileCropAsChanged()">
+
+                                        <option value="400">
+
+                                            400 px
+
+                                        </option>
+
+
+                                        <option value="600"
+                                                selected>
+
+                                            600 px
+
+                                        </option>
+
+
+                                        <option value="800">
+
+                                            800 px
+
+                                        </option>
+
+                                    </select>
+
+                                </label>
+
+                            </div>
+
+
+                            <!-- =============================================
+                                 CROP WORK AREA
+                                 ============================================= -->
+                            <div class="profile-crop-stage">
+
+                                <div class="profile-crop-canvas-wrap">
+
+                                    <canvas id="profileCropCanvas"
+                                            width="600"
+                                            height="600">
+
+                                    </canvas>
+
+
+                                    <!-- Circle showing final avatar appearance -->
+                                    <div id="profileCropCircleGuide"
+                                         class="profile-crop-circle-guide">
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+                            <p class="profile-crop-instructions">
+
+                                Drag the image inside the crop area.
+                                The circular guide shows approximately how a
+                                1:1 image will appear on your SpaceHub profile.
+
+                            </p>
+
+
+                            <!-- =============================================
+                                 ZOOM CONTROL
+                                 ============================================= -->
+                            <div class="profile-crop-zoom">
+
+                                <label for="profileCropZoom">
+                                    Zoom
+                                </label>
+
+
+                                <input id="profileCropZoom"
+                                       type="range"
+                                       min="1"
+                                       max="3"
+                                       step="0.01"
+                                       value="1"
+                                       oninput="changeProfileCropZoom(this.value)">
+
+
+                                <span id="profileCropZoomValue">
+                                    100%
+                                </span>
+
+                            </div>
+
+
+                            <!-- =============================================
+                                 CROP BUTTONS
+                                 ============================================= -->
+                            <div class="profile-crop-actions">
+
+
+                                <button type="button"
+                                        class="profile-crop-reset"
+                                        onclick="resetProfilePictureCrop()">
+
+                                    Reset Crop
+
+                                </button>
+
+
+                                <button type="button"
+                                        class="profile-crop-apply"
+                                        onclick="applyProfilePictureCrop()">
+
+                                    Apply Crop
+
+                                </button>
+
+                            </div>
 
                         </div>
 
@@ -245,7 +465,6 @@
                 </div>
 
             </div>
-
 
 
             <!-- =================================================
@@ -267,7 +486,6 @@
                 </div>
 
 
-
                 <div class="edit-form-control">
 
                     <input id="name"
@@ -280,7 +498,6 @@
                 </div>
 
             </div>
-
 
 
             <!-- =================================================
@@ -302,7 +519,6 @@
                 </div>
 
 
-
                 <div class="edit-form-control">
 
                     <input id="userCode"
@@ -314,7 +530,6 @@
                 </div>
 
             </div>
-
 
 
             <!-- =================================================
@@ -336,7 +551,6 @@
                 </div>
 
 
-
                 <div class="edit-form-control">
 
                     <input id="email"
@@ -348,7 +562,6 @@
                 </div>
 
             </div>
-
 
 
             <!-- =================================================
@@ -370,7 +583,6 @@
                 </div>
 
 
-
                 <div class="edit-form-control">
 
                     <input id="department"
@@ -382,7 +594,6 @@
                 </div>
 
             </div>
-
 
 
             <!-- =================================================
@@ -404,7 +615,6 @@
                 </div>
 
 
-
                 <div class="edit-form-control">
 
                     <input id="role"
@@ -416,7 +626,6 @@
                 </div>
 
             </div>
-
 
 
             <!-- =================================================
@@ -436,7 +645,6 @@
                     </span>
 
                 </div>
-
 
 
                 <div class="edit-form-control">
@@ -459,7 +667,6 @@
                 </div>
 
             </div>
-
 
 
             <!-- =================================================
@@ -490,7 +697,6 @@
             </div>
 
 
-
             <!-- =================================================
                  ACTION BUTTONS
                  ================================================= -->
@@ -506,6 +712,7 @@
 
 
                 <button type="submit"
+                        id="saveProfileButton"
                         class="edit-save-btn">
 
                     Save Changes
@@ -518,7 +725,6 @@
         </form>
 
     </section>
-
 
 
     <!-- =====================================================
@@ -547,7 +753,6 @@
         </div>
 
 
-
         <a th:href="@{/profile/change-password}"
            class="change-password-link">
 
@@ -574,17 +779,133 @@
 </main>
 
 
-
 <!-- =========================================================
-     PROFILE PICTURE PREVIEW SCRIPT
+     PROFILE PICTURE CROPPER SCRIPT
      ========================================================= -->
 <script>
 
-    function previewProfilePicture(input) {
+    /* =========================================================
+       CROPPER STATE
+       ========================================================= */
 
-        if (!input.files || !input.files[0]) {
+    const profileCropState = {
+
+        image: null,
+
+        originalFile: null,
+
+        objectUrl: null,
+
+        finalPreviewUrl: null,
+
+        zoom: 1,
+
+        offsetX: 0,
+
+        offsetY: 0,
+
+        dragging: false,
+
+        lastPointerX: 0,
+
+        lastPointerY: 0,
+
+        cropApplied: false
+
+    };
+
+
+    let originalProfilePreviewSrc = null;
+
+    let originalProfilePreviewExisted = false;
+
+
+
+    /* =========================================================
+       INITIALISE
+       ========================================================= */
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        function () {
+
+            const preview =
+                document.getElementById(
+                    "profilePicturePreview"
+                );
+
+
+            if (preview) {
+
+                originalProfilePreviewExisted =
+                    true;
+
+
+                originalProfilePreviewSrc =
+                    preview.getAttribute(
+                        "src"
+                    );
+
+            }
+
+
+            initialiseProfileCropCanvas();
+
+
+            const form =
+                document.getElementById(
+                    "editProfileForm"
+                );
+
+
+            form.addEventListener(
+                "submit",
+                function (event) {
+
+                    /*
+                     * If a new picture was selected,
+                     * the user must apply the crop first.
+                     */
+
+                    if (
+                        profileCropState.originalFile
+                        &&
+                        !profileCropState.cropApplied
+                    ) {
+
+                        event.preventDefault();
+
+
+                        alert(
+                            "Please apply the profile picture crop before saving your changes."
+                        );
+
+                    }
+
+                }
+            );
+
+        }
+    );
+
+
+
+    /* =========================================================
+       SELECT IMAGE
+       ========================================================= */
+
+    function prepareProfilePictureCrop(
+        input
+    ) {
+
+        if (
+            !input.files
+            ||
+            !input.files[0]
+        ) {
 
             return;
+
         }
 
 
@@ -593,12 +914,13 @@
 
 
 
-        /* =====================================================
-           FILE SIZE VALIDATION
-           ===================================================== */
+        /* -----------------------------------------------------
+           MAXIMUM FILE SIZE
+           ----------------------------------------------------- */
 
         if (
-            file.size >
+            file.size
+            >
             5 * 1024 * 1024
         ) {
 
@@ -606,16 +928,20 @@
                 "Profile picture must be 5 MB or smaller."
             );
 
-            input.value = "";
+
+            input.value =
+                "";
+
 
             return;
+
         }
 
 
 
-        /* =====================================================
-           FILE TYPE VALIDATION
-           ===================================================== */
+        /* -----------------------------------------------------
+           ALLOWED TYPES
+           ----------------------------------------------------- */
 
         const allowedTypes = [
 
@@ -638,97 +964,1320 @@
                 "Please select a JPG, JPEG, PNG or WEBP image."
             );
 
-            input.value = "";
+
+            input.value =
+                "";
+
 
             return;
+
         }
 
 
 
-        /* =====================================================
-           CREATE IMAGE PREVIEW
-           ===================================================== */
+        /* -----------------------------------------------------
+           REMOVE PREVIOUS OBJECT URL
+           ----------------------------------------------------- */
 
-        const reader =
-            new FileReader();
+        if (
+            profileCropState.objectUrl
+        ) {
+
+            URL.revokeObjectURL(
+                profileCropState.objectUrl
+            );
+
+        }
 
 
-        reader.onload =
-            function (event) {
+
+        /* -----------------------------------------------------
+           STORE FILE
+           ----------------------------------------------------- */
+
+        profileCropState.originalFile =
+            file;
 
 
-                let preview =
-                    document.getElementById(
-                        "profilePicturePreview"
+        profileCropState.cropApplied =
+            false;
+
+
+        profileCropState.zoom =
+            1;
+
+
+        profileCropState.offsetX =
+            0;
+
+
+        profileCropState.offsetY =
+            0;
+
+
+
+        /* -----------------------------------------------------
+           LOAD IMAGE
+           ----------------------------------------------------- */
+
+        const image =
+            new Image();
+
+
+        profileCropState.objectUrl =
+            URL.createObjectURL(
+                file
+            );
+
+
+        image.onload =
+            function () {
+
+                profileCropState.image =
+                    image;
+
+
+                document
+                    .getElementById(
+                        "profileCropper"
+                    )
+                    .hidden =
+                        false;
+
+
+                document
+                    .getElementById(
+                        "profileCropZoom"
+                    )
+                    .value =
+                        "1";
+
+
+                document
+                    .getElementById(
+                        "profileCropZoomValue"
+                    )
+                    .textContent =
+                        "100%";
+
+
+                setProfilePictureStatus(
+                    "New image selected. Adjust the crop and click Apply Crop."
+                );
+
+
+                resizeProfileCropCanvas();
+
+
+                renderProfilePictureCrop();
+
+
+                document
+                    .getElementById(
+                        "profileCropper"
+                    )
+                    .scrollIntoView(
+                        {
+                            behavior:
+                                "smooth",
+
+                            block:
+                                "nearest"
+                        }
                     );
-
-
-                const placeholder =
-                    document.getElementById(
-                        "profilePicturePlaceholder"
-                    );
-
-
-
-                /*
-                 * User currently has no profile picture,
-                 * so create the image element.
-                 */
-
-                if (!preview) {
-
-                    preview =
-                        document.createElement(
-                            "img"
-                        );
-
-
-                    preview.id =
-                        "profilePicturePreview";
-
-
-                    preview.alt =
-                        "Profile picture preview";
-
-
-                    document
-                        .querySelector(
-                            ".profile-picture-preview"
-                        )
-                        .appendChild(
-                            preview
-                        );
-
-                }
-
-
-
-                /* Display selected image */
-
-                preview.src =
-                    event.target.result;
-
-
-                preview.style.display =
-                    "block";
-
-
-
-                /* Hide initial placeholder */
-
-                if (placeholder) {
-
-                    placeholder.style.display =
-                        "none";
-
-                }
 
             };
 
 
-        reader.readAsDataURL(
-            file
+        image.onerror =
+            function () {
+
+                alert(
+                    "The selected image could not be loaded."
+                );
+
+
+                cancelProfilePictureCrop();
+
+            };
+
+
+        image.src =
+            profileCropState.objectUrl;
+
+    }
+
+
+
+    /* =========================================================
+       CANVAS DRAGGING
+       ========================================================= */
+
+    function initialiseProfileCropCanvas() {
+
+        const canvas =
+            document.getElementById(
+                "profileCropCanvas"
+            );
+
+
+        canvas.addEventListener(
+            "pointerdown",
+            function (event) {
+
+                if (
+                    !profileCropState.image
+                ) {
+
+                    return;
+
+                }
+
+
+                profileCropState.dragging =
+                    true;
+
+
+                profileCropState.lastPointerX =
+                    event.clientX;
+
+
+                profileCropState.lastPointerY =
+                    event.clientY;
+
+
+                canvas.setPointerCapture(
+                    event.pointerId
+                );
+
+
+                canvas.classList.add(
+                    "dragging"
+                );
+
+            }
         );
+
+
+        canvas.addEventListener(
+            "pointermove",
+            function (event) {
+
+                if (
+                    !profileCropState.dragging
+                    ||
+                    !profileCropState.image
+                ) {
+
+                    return;
+
+                }
+
+
+                const bounds =
+                    canvas.getBoundingClientRect();
+
+
+                const scaleX =
+                    canvas.width
+                    /
+                    bounds.width;
+
+
+                const scaleY =
+                    canvas.height
+                    /
+                    bounds.height;
+
+
+                const deltaX =
+                    (
+                        event.clientX
+                        -
+                        profileCropState.lastPointerX
+                    )
+                    *
+                    scaleX;
+
+
+                const deltaY =
+                    (
+                        event.clientY
+                        -
+                        profileCropState.lastPointerY
+                    )
+                    *
+                    scaleY;
+
+
+                profileCropState.lastPointerX =
+                    event.clientX;
+
+
+                profileCropState.lastPointerY =
+                    event.clientY;
+
+
+                profileCropState.offsetX +=
+                    deltaX;
+
+
+                profileCropState.offsetY +=
+                    deltaY;
+
+
+                markProfileCropAsChanged();
+
+
+                renderProfilePictureCrop();
+
+            }
+        );
+
+
+        function stopDragging(
+            event
+        ) {
+
+            profileCropState.dragging =
+                false;
+
+
+            canvas.classList.remove(
+                "dragging"
+            );
+
+
+            if (
+                event.pointerId !== undefined
+                &&
+                canvas.hasPointerCapture(
+                    event.pointerId
+                )
+            ) {
+
+                canvas.releasePointerCapture(
+                    event.pointerId
+                );
+
+            }
+
+        }
+
+
+        canvas.addEventListener(
+            "pointerup",
+            stopDragging
+        );
+
+
+        canvas.addEventListener(
+            "pointercancel",
+            stopDragging
+        );
+
+    }
+
+
+
+    /* =========================================================
+       CHANGE CROP RATIO
+       ========================================================= */
+
+    function changeProfileCropRatio() {
+
+        if (
+            !profileCropState.image
+        ) {
+
+            return;
+
+        }
+
+
+        profileCropState.zoom =
+            1;
+
+
+        profileCropState.offsetX =
+            0;
+
+
+        profileCropState.offsetY =
+            0;
+
+
+        document
+            .getElementById(
+                "profileCropZoom"
+            )
+            .value =
+                "1";
+
+
+        document
+            .getElementById(
+                "profileCropZoomValue"
+            )
+            .textContent =
+                "100%";
+
+
+        resizeProfileCropCanvas();
+
+
+        markProfileCropAsChanged();
+
+
+        renderProfilePictureCrop();
+
+    }
+
+
+
+    /* =========================================================
+       RESIZE CROP CANVAS
+       ========================================================= */
+
+    function resizeProfileCropCanvas() {
+
+        const canvas =
+            document.getElementById(
+                "profileCropCanvas"
+            );
+
+
+        const ratio =
+            Number(
+                document
+                    .getElementById(
+                        "profileCropRatio"
+                    )
+                    .value
+            );
+
+
+        canvas.width =
+            600;
+
+
+        canvas.height =
+            Math.round(
+                600
+                /
+                ratio
+            );
+
+
+        const circleGuide =
+            document.getElementById(
+                "profileCropCircleGuide"
+            );
+
+
+        /*
+         * Circle guide is most useful for
+         * the recommended square crop.
+         */
+
+        if (
+            ratio === 1
+        ) {
+
+            circleGuide.style.display =
+                "block";
+
+        } else {
+
+            circleGuide.style.display =
+                "none";
+
+        }
+
+    }
+
+
+
+    /* =========================================================
+       ZOOM
+       ========================================================= */
+
+    function changeProfileCropZoom(
+        value
+    ) {
+
+        profileCropState.zoom =
+            Number(
+                value
+            );
+
+
+        document
+            .getElementById(
+                "profileCropZoomValue"
+            )
+            .textContent =
+                Math.round(
+                    profileCropState.zoom
+                    *
+                    100
+                )
+                +
+                "%";
+
+
+        markProfileCropAsChanged();
+
+
+        renderProfilePictureCrop();
+
+    }
+
+
+
+    /* =========================================================
+       RESET CROP
+       ========================================================= */
+
+    function resetProfilePictureCrop() {
+
+        if (
+            !profileCropState.image
+        ) {
+
+            return;
+
+        }
+
+
+        profileCropState.zoom =
+            1;
+
+
+        profileCropState.offsetX =
+            0;
+
+
+        profileCropState.offsetY =
+            0;
+
+
+        document
+            .getElementById(
+                "profileCropZoom"
+            )
+            .value =
+                "1";
+
+
+        document
+            .getElementById(
+                "profileCropZoomValue"
+            )
+            .textContent =
+                "100%";
+
+
+        markProfileCropAsChanged();
+
+
+        renderProfilePictureCrop();
+
+    }
+
+
+
+    /* =========================================================
+       DRAW IMAGE INTO CROP AREA
+       ========================================================= */
+
+    function renderProfilePictureCrop() {
+
+        const canvas =
+            document.getElementById(
+                "profileCropCanvas"
+            );
+
+
+        const image =
+            profileCropState.image;
+
+
+        if (
+            !canvas
+            ||
+            !image
+        ) {
+
+            return;
+
+        }
+
+
+        const context =
+            canvas.getContext(
+                "2d"
+            );
+
+
+        context.clearRect(
+            0,
+            0,
+            canvas.width,
+            canvas.height
+        );
+
+
+
+        /*
+         * Minimum scale required for the
+         * image to cover the complete crop area.
+         */
+
+        const coverScale =
+            Math.max(
+
+                canvas.width
+                /
+                image.naturalWidth,
+
+                canvas.height
+                /
+                image.naturalHeight
+
+            );
+
+
+        const scale =
+            coverScale
+            *
+            profileCropState.zoom;
+
+
+        const drawWidth =
+            image.naturalWidth
+            *
+            scale;
+
+
+        const drawHeight =
+            image.naturalHeight
+            *
+            scale;
+
+
+
+        /* -----------------------------------------------------
+           PREVENT BLANK SPACE
+           ----------------------------------------------------- */
+
+        const maximumOffsetX =
+            Math.max(
+                0,
+                (
+                    drawWidth
+                    -
+                    canvas.width
+                )
+                /
+                2
+            );
+
+
+        const maximumOffsetY =
+            Math.max(
+                0,
+                (
+                    drawHeight
+                    -
+                    canvas.height
+                )
+                /
+                2
+            );
+
+
+        profileCropState.offsetX =
+            Math.max(
+                -maximumOffsetX,
+                Math.min(
+                    maximumOffsetX,
+                    profileCropState.offsetX
+                )
+            );
+
+
+        profileCropState.offsetY =
+            Math.max(
+                -maximumOffsetY,
+                Math.min(
+                    maximumOffsetY,
+                    profileCropState.offsetY
+                )
+            );
+
+
+        const drawX =
+            (
+                canvas.width
+                -
+                drawWidth
+            )
+            /
+            2
+            +
+            profileCropState.offsetX;
+
+
+        const drawY =
+            (
+                canvas.height
+                -
+                drawHeight
+            )
+            /
+            2
+            +
+            profileCropState.offsetY;
+
+
+        context.imageSmoothingEnabled =
+            true;
+
+
+        context.imageSmoothingQuality =
+            "high";
+
+
+        context.drawImage(
+            image,
+            drawX,
+            drawY,
+            drawWidth,
+            drawHeight
+        );
+
+    }
+
+
+
+    /* =========================================================
+       APPLY CROP
+       ========================================================= */
+
+    function applyProfilePictureCrop() {
+
+        if (
+            !profileCropState.image
+            ||
+            !profileCropState.originalFile
+        ) {
+
+            return;
+
+        }
+
+
+        const cropCanvas =
+            document.getElementById(
+                "profileCropCanvas"
+            );
+
+
+        const ratio =
+            Number(
+                document
+                    .getElementById(
+                        "profileCropRatio"
+                    )
+                    .value
+            );
+
+
+        const selectedWidth =
+            Number(
+                document
+                    .getElementById(
+                        "profileCropSize"
+                    )
+                    .value
+            );
+
+
+        const outputWidth =
+            selectedWidth;
+
+
+        const outputHeight =
+            Math.round(
+                outputWidth
+                /
+                ratio
+            );
+
+
+        const outputCanvas =
+            document.createElement(
+                "canvas"
+            );
+
+
+        outputCanvas.width =
+            outputWidth;
+
+
+        outputCanvas.height =
+            outputHeight;
+
+
+        const outputContext =
+            outputCanvas.getContext(
+                "2d"
+            );
+
+
+        outputContext.imageSmoothingEnabled =
+            true;
+
+
+        outputContext.imageSmoothingQuality =
+            "high";
+
+
+        outputContext.drawImage(
+
+            cropCanvas,
+
+            0,
+            0,
+            cropCanvas.width,
+            cropCanvas.height,
+
+            0,
+            0,
+            outputWidth,
+            outputHeight
+
+        );
+
+
+
+        /* -----------------------------------------------------
+           OUTPUT FILE TYPE
+           ----------------------------------------------------- */
+
+        let outputType =
+            profileCropState.originalFile.type;
+
+
+        if (
+            outputType !== "image/jpeg"
+            &&
+            outputType !== "image/png"
+            &&
+            outputType !== "image/webp"
+        ) {
+
+            outputType =
+                "image/jpeg";
+
+        }
+
+
+        const quality =
+            outputType === "image/png"
+                ? undefined
+                : 0.92;
+
+
+
+        /* -----------------------------------------------------
+           CREATE FILE
+           ----------------------------------------------------- */
+
+        outputCanvas.toBlob(
+
+            function (blob) {
+
+                if (!blob) {
+
+                    alert(
+                        "The cropped profile picture could not be created."
+                    );
+
+
+                    return;
+
+                }
+
+
+                if (
+                    blob.size
+                    >
+                    5 * 1024 * 1024
+                ) {
+
+                    alert(
+                        "The cropped image is larger than 5 MB. Please choose a smaller output size."
+                    );
+
+
+                    return;
+
+                }
+
+
+                const extension =
+                    getProfilePictureExtension(
+                        outputType
+                    );
+
+
+                const baseName =
+                    getProfilePictureBaseName(
+                        profileCropState.originalFile.name
+                    );
+
+
+                const croppedFile =
+                    new File(
+
+                        [
+                            blob
+                        ],
+
+                        baseName
+                        +
+                        "-cropped."
+                        +
+                        extension,
+
+                        {
+                            type:
+                                outputType,
+
+                            lastModified:
+                                Date.now()
+                        }
+
+                    );
+
+
+
+                /* ---------------------------------------------
+                   PUT CROPPED FILE BACK INTO FILE INPUT
+                   --------------------------------------------- */
+
+                const dataTransfer =
+                    new DataTransfer();
+
+
+                dataTransfer.items.add(
+                    croppedFile
+                );
+
+
+                const fileInput =
+                    document.getElementById(
+                        "profilePicture"
+                    );
+
+
+                fileInput.files =
+                    dataTransfer.files;
+
+
+
+                /* ---------------------------------------------
+                   UPDATE FINAL PREVIEW
+                   --------------------------------------------- */
+
+                showFinalProfilePicturePreview(
+                    blob
+                );
+
+
+                profileCropState.cropApplied =
+                    true;
+
+
+                setProfilePictureStatus(
+
+                    "Crop applied — "
+                    +
+                    outputWidth
+                    +
+                    " × "
+                    +
+                    outputHeight
+                    +
+                    " px. Click Save Changes to upload."
+
+                );
+
+            },
+
+            outputType,
+
+            quality
+
+        );
+
+    }
+
+
+
+    /* =========================================================
+       FINAL PREVIEW
+       ========================================================= */
+
+    function showFinalProfilePicturePreview(
+        blob
+    ) {
+
+        let preview =
+            document.getElementById(
+                "profilePicturePreview"
+            );
+
+
+        const placeholder =
+            document.getElementById(
+                "profilePicturePlaceholder"
+            );
+
+
+        if (!preview) {
+
+            preview =
+                document.createElement(
+                    "img"
+                );
+
+
+            preview.id =
+                "profilePicturePreview";
+
+
+            preview.alt =
+                "Cropped profile picture preview";
+
+
+            document
+                .querySelector(
+                    ".profile-picture-preview"
+                )
+                .appendChild(
+                    preview
+                );
+
+        }
+
+
+
+        if (
+            profileCropState.finalPreviewUrl
+        ) {
+
+            URL.revokeObjectURL(
+                profileCropState.finalPreviewUrl
+            );
+
+        }
+
+
+        profileCropState.finalPreviewUrl =
+            URL.createObjectURL(
+                blob
+            );
+
+
+        preview.src =
+            profileCropState.finalPreviewUrl;
+
+
+        preview.style.display =
+            "block";
+
+
+        if (placeholder) {
+
+            placeholder.style.display =
+                "none";
+
+        }
+
+    }
+
+
+
+    /* =========================================================
+       CANCEL NEW IMAGE
+       ========================================================= */
+
+    function cancelProfilePictureCrop() {
+
+        const input =
+            document.getElementById(
+                "profilePicture"
+            );
+
+
+        input.value =
+            "";
+
+
+        if (
+            profileCropState.objectUrl
+        ) {
+
+            URL.revokeObjectURL(
+                profileCropState.objectUrl
+            );
+
+        }
+
+
+        if (
+            profileCropState.finalPreviewUrl
+        ) {
+
+            URL.revokeObjectURL(
+                profileCropState.finalPreviewUrl
+            );
+
+        }
+
+
+        profileCropState.image =
+            null;
+
+
+        profileCropState.originalFile =
+            null;
+
+
+        profileCropState.objectUrl =
+            null;
+
+
+        profileCropState.finalPreviewUrl =
+            null;
+
+
+        profileCropState.zoom =
+            1;
+
+
+        profileCropState.offsetX =
+            0;
+
+
+        profileCropState.offsetY =
+            0;
+
+
+        profileCropState.cropApplied =
+            false;
+
+
+        document
+            .getElementById(
+                "profileCropper"
+            )
+            .hidden =
+                true;
+
+
+        restoreOriginalProfilePicturePreview();
+
+
+        setProfilePictureStatus(
+            "No new profile picture selected."
+        );
+
+    }
+
+
+
+    /* =========================================================
+       RESTORE EXISTING PICTURE
+       ========================================================= */
+
+    function restoreOriginalProfilePicturePreview() {
+
+        const preview =
+            document.getElementById(
+                "profilePicturePreview"
+            );
+
+
+        const placeholder =
+            document.getElementById(
+                "profilePicturePlaceholder"
+            );
+
+
+        if (
+            originalProfilePreviewExisted
+            &&
+            preview
+        ) {
+
+            preview.src =
+                originalProfilePreviewSrc;
+
+
+            preview.style.display =
+                "block";
+
+
+            if (placeholder) {
+
+                placeholder.style.display =
+                    "none";
+
+            }
+
+
+            return;
+
+        }
+
+
+        if (
+            preview
+        ) {
+
+            preview.remove();
+
+        }
+
+
+        if (
+            placeholder
+        ) {
+
+            placeholder.style.display =
+                "flex";
+
+        }
+
+    }
+
+
+
+    /* =========================================================
+       CROP CHANGED
+       ========================================================= */
+
+    function markProfileCropAsChanged() {
+
+        if (
+            !profileCropState.originalFile
+        ) {
+
+            return;
+
+        }
+
+
+        profileCropState.cropApplied =
+            false;
+
+
+        setProfilePictureStatus(
+            "Crop changed. Click Apply Crop before saving."
+        );
+
+    }
+
+
+
+    /* =========================================================
+       STATUS
+       ========================================================= */
+
+    function setProfilePictureStatus(
+        message
+    ) {
+
+        const status =
+            document.getElementById(
+                "profilePictureStatus"
+            );
+
+
+        if (status) {
+
+            status.textContent =
+                message;
+
+        }
+
+    }
+
+
+
+    /* =========================================================
+       FILE NAME
+       ========================================================= */
+
+    function getProfilePictureBaseName(
+        filename
+    ) {
+
+        const dot =
+            filename.lastIndexOf(
+                "."
+            );
+
+
+        if (
+            dot <= 0
+        ) {
+
+            return filename;
+
+        }
+
+
+        return filename.substring(
+            0,
+            dot
+        );
+
+    }
+
+
+
+    /* =========================================================
+       FILE EXTENSION
+       ========================================================= */
+
+    function getProfilePictureExtension(
+        mimeType
+    ) {
+
+        if (
+            mimeType === "image/png"
+        ) {
+
+            return "png";
+
+        }
+
+
+        if (
+            mimeType === "image/webp"
+        ) {
+
+            return "webp";
+
+        }
+
+
+        return "jpg";
 
     }
 

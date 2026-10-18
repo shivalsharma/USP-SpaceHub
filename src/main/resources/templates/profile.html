@@ -234,13 +234,16 @@
 
                 <!-- =================================================
                      DATE
+                     Past dates cannot be selected.
                      ================================================= -->
                 <label>
 
                     Date
 
                     <input type="date"
+                           id="busyDate"
                            th:field="*{date}"
+                           th:min="${today}"
                            required>
 
                 </label>
@@ -471,6 +474,105 @@
 
 
 </main>
+
+
+
+<!-- =========================================================
+     DATE RESTRICTION
+
+     Thymeleaf sets the minimum date from the server.
+
+     JavaScript also sets it using the browser's local date.
+     This provides an additional client-side safeguard.
+     ========================================================= -->
+<script>
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        function () {
+
+            const dateInput =
+                document.getElementById(
+                    "busyDate"
+                );
+
+
+            if (!dateInput) {
+
+                return;
+
+            }
+
+
+            /*
+             * Get today's date using the user's
+             * local browser timezone.
+             */
+            const today =
+                new Date();
+
+
+            const year =
+                today.getFullYear();
+
+
+            const month =
+                String(
+                    today.getMonth() + 1
+                ).padStart(
+                    2,
+                    "0"
+                );
+
+
+            const day =
+                String(
+                    today.getDate()
+                ).padStart(
+                    2,
+                    "0"
+                );
+
+
+            const minimumDate =
+                year
+                +
+                "-"
+                +
+                month
+                +
+                "-"
+                +
+                day;
+
+
+            /*
+             * Prevent selection of dates
+             * earlier than today.
+             */
+            dateInput.min =
+                minimumDate;
+
+
+            /*
+             * If a past value somehow remains
+             * in the field, clear it.
+             */
+            if (
+                dateInput.value
+                &&
+                dateInput.value < minimumDate
+            ) {
+
+                dateInput.value =
+                    "";
+
+            }
+
+        }
+    );
+
+</script>
 
 
 </body>

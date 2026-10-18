@@ -41,6 +41,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 
+import java.time.LocalDate;
+
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -119,7 +121,10 @@ public class ProfileController {
                 current.require(auth);
 
 
-        /* Current user */
+
+        /* -----------------------------------------------------
+           CURRENT USER
+           ----------------------------------------------------- */
 
         model.addAttribute(
                 "user",
@@ -127,7 +132,10 @@ public class ProfileController {
         );
 
 
-        /* User timetable / busy entries */
+
+        /* -----------------------------------------------------
+           USER TIMETABLE / BUSY ENTRIES
+           ----------------------------------------------------- */
 
         model.addAttribute(
                 "entries",
@@ -137,7 +145,10 @@ public class ProfileController {
         );
 
 
-        /* Empty timetable form */
+
+        /* -----------------------------------------------------
+           EMPTY TIMETABLE FORM
+           ----------------------------------------------------- */
 
         model.addAttribute(
                 "scheduleForm",
@@ -145,8 +156,28 @@ public class ProfileController {
         );
 
 
+
         /* -----------------------------------------------------
-           Lecturer assigned courses
+           MINIMUM SELECTABLE DATE
+
+           Used by profile.html:
+
+           th:min="${today}"
+
+           This prevents dates earlier than today
+           from being selected by the normal
+           browser date picker.
+           ----------------------------------------------------- */
+
+        model.addAttribute(
+                "today",
+                LocalDate.now()
+        );
+
+
+
+        /* -----------------------------------------------------
+           LECTURER ASSIGNED COURSES
            ----------------------------------------------------- */
 
         List<Course> assignedCourses;
@@ -287,8 +318,8 @@ public class ProfileController {
 
 
                 /*
-                 * Delete previous image after the
-                 * replacement has been successfully stored.
+                 * Delete previous image after the new
+                 * image has been successfully stored.
                  */
 
                 deleteOldProfilePicture(
@@ -609,8 +640,8 @@ public class ProfileController {
         } catch (IOException ignored) {
 
             /*
-             * An old image failing to delete should
-             * not prevent the profile update.
+             * Failure to remove an older picture must
+             * not prevent the user's profile update.
              */
 
         }
@@ -933,25 +964,26 @@ public class ProfileController {
            ----------------------------------------------------- */
 
         /*
-         * If this account was created with an automatically
+         * If this account was created using an automatically
          * generated temporary password, a successful password
          * change completes the first-login password process.
          *
-         * For normal existing users this simply remains false.
+         * For normal existing accounts this simply remains false.
          */
+
         user.setMustChangePassword(
                 false
         );
 
 
         /*
-         * Only the encoded BCrypt password is stored.
+         * Only the BCrypt encoded password is stored.
          *
-         * The plain current/new passwords are never
-         * written to the database.
+         * Plain current/new passwords are never written
+         * to the database.
          *
          * Because this method is transactional, Hibernate
-         * persists both the new password hash and the updated
+         * persists both the new password hash and the
          * must_change_password value when the transaction
          * completes.
          */
@@ -1010,11 +1042,13 @@ public class ProfileController {
 
 
         /* -----------------------------------------------------
-           VALIDATE SCHEDULE
+           VALIDATE REQUIRED VALUES AND TIME RANGE
            ----------------------------------------------------- */
 
         if (
                 bindingResult.hasErrors()
+                ||
+                scheduleForm.getDate() == null
                 ||
                 scheduleForm.getStartTime() == null
                 ||
@@ -1030,6 +1064,36 @@ public class ProfileController {
             redirectAttributes.addFlashAttribute(
                     "error",
                     "Enter a valid schedule date/time."
+            );
+
+
+            return "redirect:/profile";
+        }
+
+
+
+        /* -----------------------------------------------------
+           REJECT PAST DATES
+
+           The HTML date input already prevents normal users
+           from selecting dates before today.
+
+           This backend validation protects the application
+           if browser validation is bypassed or a crafted
+           request is sent directly to the server.
+           ----------------------------------------------------- */
+
+        if (
+                scheduleForm
+                        .getDate()
+                        .isBefore(
+                                LocalDate.now()
+                        )
+        ) {
+
+            redirectAttributes.addFlashAttribute(
+                    "error",
+                    "Past dates cannot be selected."
             );
 
 
