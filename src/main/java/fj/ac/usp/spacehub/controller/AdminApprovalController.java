@@ -1,148 +1,151 @@
 package fj.ac.usp.spacehub.controller;
 
-import fj.ac.usp.spacehub.model.Booking;
-import fj.ac.usp.spacehub.model.BookingStatus;
-import fj.ac.usp.spacehub.repository.BookingRepository;
-import fj.ac.usp.spacehub.service.ApprovalService;
+import fj.ac.usp.spacehub.dto.SearchForm;
+import fj.ac.usp.spacehub.model.*;
+import fj.ac.usp.spacehub.repository.*;
+import fj.ac.usp.spacehub.service.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.util.List;
-
 @Controller
 @RequiredArgsConstructor
-@RequestMapping("/admin/approvals")
-public class AdminApprovalController {
+@RequestMapping("/bookings")
+public class BookingController {
 
+    private final CurrentUserService current;
     private final BookingRepository bookings;
-    private final ApprovalService service;
+    private final AlternativeSuggestionRepository alternatives;
+    private final BookingService service;
+    private final CourseRepository courses;
 
     @GetMapping
-    public String list(Model model) {
-        try {
-            List<Booking> pendingBookings =
-                    bookings.findByStatusOrderByCreatedAtAsc(BookingStatus.PENDING);
-
-            model.addAttribute("pending", pendingBookings);
-        } catch (Exception e) {
-            model.addAttribute("pending", List.of());
-            model.addAttribute(
-                    "approvalLoadError",
-                    e.getClass().getSimpleName()
-                            + ": "
-                            + (e.getMessage() == null
-                                ? "Unable to load pending bookings."
-                                : e.getMessage())
-            );
-        }
-
-        return "admin/approvals";
+    String list(Authentication auth, Model m) {
+        UserAccount u = current.require(auth);
+        m.addAttribute("bookings",
+                bookings.findByRequesterIdOrderByDateDescStartTimeDesc(u.getId()));
+        m.addAttribute("alternatives",
+                alternatives.findByBookingRequesterIdAndStatusOrderByCreatedAtDesc(
+                        u.getId(), AlternativeStatus.PROPOSED));
+        return "bookings";
     }
 
-    @GetMapping("/{id}")
-    public String detail(@PathVariable Long id, Model model) {
+    @PostMapping("/submit")
+    String submit(
+            Authentication auth,
+            @RequestParam Long roomId,
+            @RequestParam(defaultValue = "0") double score,
+            @ModelAttribute SearchForm form,
+            RedirectAttributes ra) {
+
         try {
-            Booking focus = bookings.findById(id)
-                    .orElseThrow(() ->
-                            new IllegalArgumentException(
-                                    "Booking request #" + id + " was not found."
-                            ));
+            /*
+             * IMPORTANT:
+             * Never trust expectedStudents coming from the browser for
+             * LAB/TUTORIAL bookings.
+             *
+             * The authoritative value is the course roll stored in the
+             * Course entity/database.
+             */
+            if (form.getBookingType() != null
+                    && form.getBookingType().isAcademic()) {
 
-            model.addAttribute("focus", focus);
+                if (form.getCourseId() == null) {
+                    throw new IllegalArgumentException(
+                            "LAB and TUTORIAL bookings require a course.");
+                }
 
-            var recommendations = service.recommendations(id);
-            model.addAttribute("recommendations", recommendations);
+                Course course = courses.findById(form.getCourseId())
+                        .orElseThrow(() -> new IllegalArgumentException(
+                                "The selected course could not be found."));
 
-        } catch (Exception e) {
-            model.addAttribute("recommendations", List.of());
-            model.addAttribute(
-                    "reviewError",
-                    e.getClass().getSimpleName()
-                            + ": "
-                            + (e.getMessage() == null
-                                ? "Unable to calculate the booking recommendation."
-                                : e.getMessage())
+                if (course.getCourseRoll() < 1) {
+                    throw new IllegalArgumentException(
+                            "The selected course does not have a valid course roll.");
+                }
+
+                // Force academic bookings to use the real course roll.
+                form.setExpectedStudents(course.getCourseRoll());
+            }
+
+            /*
+             * ECA bookings still use the attendance entered by the user.
+             */
+            if (form.getBookingType() == BookingType.ECA
+                    && form.getExpectedStudents() < 1) {
+                throw new IllegalArgumentException(
+                        "Expected attendance must be at least 1.");
+            }
+
+            Booking b = service.submit(
+                    current.require(auth),
+                    roomId,
+                    form,
+                    score
             );
-        }
 
-        return "admin/approval-detail";
-    }
-
-    @PostMapping("/{id}/approve")
-    public String approve(
-            @PathVariable Long id,
-            @RequestParam(required = false) String reason,
-            RedirectAttributes redirectAttributes) {
-
-        try {
-            service.approve(id, reason);
-            redirectAttributes.addFlashAttribute(
+            ra.addFlashAttribute(
                     "success",
-                    "Booking approved and conflicting requests processed."
-            );
+                    "Booking request #" + b.getId()
+                            + " submitted for admin approval.");
+
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", e.getMessage());
+            ra.addFlashAttribute("error", e.getMessage());
         }
 
-        return "redirect:/admin/approvals";
+        return "redirect:/bookings";
     }
 
-    @PostMapping("/{id}/reject")
-    public String reject(
+    @PostMapping("/{id}/cancel")
+    String cancel(
+            Authentication auth,
             @PathVariable Long id,
-            @RequestParam String reason,
-            RedirectAttributes redirectAttributes) {
+            RedirectAttributes ra) {
 
         try {
-            service.reject(id, reason);
-            redirectAttributes.addFlashAttribute(
-                    "success",
-                    "Booking rejected."
-            );
+            service.cancel(current.require(auth), id);
+            ra.addFlashAttribute("success", "Booking cancelled.");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", e.getMessage());
+            ra.addFlashAttribute("error", e.getMessage());
         }
 
-        return "redirect:/admin/approvals";
+        return "redirect:/bookings";
     }
 
-    @PostMapping("/{id}/override")
-    public String override(
+    @PostMapping("/alternatives/{id}/accept")
+    String accept(
+            Authentication auth,
             @PathVariable Long id,
-            @RequestParam String reason,
-            RedirectAttributes redirectAttributes) {
+            RedirectAttributes ra) {
 
         try {
-            service.approveWithOverride(id, reason);
-            redirectAttributes.addFlashAttribute(
+            service.acceptAlternative(current.require(auth), id);
+            ra.addFlashAttribute(
                     "success",
-                    "Booking approved with logged override."
-            );
+                    "Alternative accepted and returned to pending approval.");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", e.getMessage());
+            ra.addFlashAttribute("error", e.getMessage());
         }
 
-        return "redirect:/admin/approvals/" + id;
+        return "redirect:/bookings";
     }
 
-    @PostMapping("/{id}/suggest-alternative")
-    public String suggestAlternative(
+    @PostMapping("/alternatives/{id}/reject")
+    String reject(
+            Authentication auth,
             @PathVariable Long id,
-            RedirectAttributes redirectAttributes) {
+            RedirectAttributes ra) {
 
         try {
-            service.suggestAlternative(id);
-            redirectAttributes.addFlashAttribute(
-                    "success",
-                    "Alternative booking suggestion sent to the requester."
-            );
+            service.rejectAlternative(current.require(auth), id);
+            ra.addFlashAttribute("success", "Alternative rejected.");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", e.getMessage());
+            ra.addFlashAttribute("error", e.getMessage());
         }
 
-        return "redirect:/admin/approvals/" + id;
+        return "redirect:/bookings";
     }
 }

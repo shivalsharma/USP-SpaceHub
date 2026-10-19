@@ -1,11 +1,15 @@
 package fj.ac.usp.spacehub.repository;
 
-import fj.ac.usp.spacehub.model.*;
+import fj.ac.usp.spacehub.model.Booking;
+import fj.ac.usp.spacehub.model.BookingStatus;
+import fj.ac.usp.spacehub.model.BookingType;
 import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
 
-import java.time.*;
-import java.util.*;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.Collection;
+import java.util.List;
 
 public interface BookingRepository extends JpaRepository<Booking, Long> {
     List<Booking> findByRequesterIdOrderByDateDescStartTimeDesc(Long userId);
@@ -15,6 +19,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     List<Booking> findByCourseIdAndDateBetweenAndStatusIn(Long courseId, LocalDate from, LocalDate to, Collection<BookingStatus> statuses);
     List<Booking> findByRequesterIdAndDateBetweenAndStatusIn(Long userId, LocalDate from, LocalDate to, Collection<BookingStatus> statuses);
     List<Booking> findByDateBetweenAndStatus(LocalDate from, LocalDate to, BookingStatus status);
+    List<Booking> findByDateBetweenAndStatusIn(LocalDate from, LocalDate to, Collection<BookingStatus> statuses);
     List<Booking> findByDateAndStatus(LocalDate date, BookingStatus status);
 
     @Query("select b from Booking b where b.room.id=:roomId and b.date=:date and b.status in :statuses and b.startTime < :endTime and b.endTime > :startTime")

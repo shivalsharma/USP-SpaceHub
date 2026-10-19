@@ -1,16 +1,32 @@
 package fj.ac.usp.spacehub.controller;
 
-import fj.ac.usp.spacehub.model.*;
-import fj.ac.usp.spacehub.repository.*;
+import fj.ac.usp.spacehub.model.Booking;
+import fj.ac.usp.spacehub.model.BookingStatus;
+import fj.ac.usp.spacehub.model.Room;
+import fj.ac.usp.spacehub.model.RoomStatus;
+import fj.ac.usp.spacehub.model.UserAccount;
+import fj.ac.usp.spacehub.model.UserRole;
+
+import fj.ac.usp.spacehub.repository.BookingRepository;
+import fj.ac.usp.spacehub.repository.CourseRepository;
+import fj.ac.usp.spacehub.repository.NotificationRepository;
+import fj.ac.usp.spacehub.repository.RoomRepository;
+import fj.ac.usp.spacehub.repository.UserRepository;
+
 import fj.ac.usp.spacehub.service.CurrentUserService;
+
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.security.core.Authentication;
+
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+
 import org.springframework.web.bind.annotation.GetMapping;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
+
 import java.util.Comparator;
 import java.util.List;
 
@@ -179,10 +195,10 @@ public class HomeController {
                                             booking.getStatus()
                                                     == BookingStatus.APPROVED
 
-                                            &&
+                                                    &&
 
-                                            !booking.getDate()
-                                                    .isBefore(today)
+                                                    !booking.getDate()
+                                                            .isBefore(today)
                             )
                             .sorted(
 
@@ -357,10 +373,10 @@ public class HomeController {
                                         booking.getStatus()
                                                 == BookingStatus.PENDING
 
-                                        ||
+                                                ||
 
-                                        booking.getStatus()
-                                                == BookingStatus.ALTERNATIVE_PROPOSED
+                                                booking.getStatus()
+                                                        == BookingStatus.ALTERNATIVE_PROPOSED
                         )
                         .count();
 
@@ -394,10 +410,10 @@ public class HomeController {
                                         booking.getStatus()
                                                 == BookingStatus.APPROVED
 
-                                        &&
+                                                &&
 
-                                        !booking.getDate()
-                                                .isBefore(today)
+                                                !booking.getDate()
+                                                        .isBefore(today)
                         )
                         .sorted(
 
