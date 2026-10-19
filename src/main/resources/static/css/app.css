@@ -10260,3 +10260,802 @@ body:has(.global-sidebar) .hero p {
     }
 
 }
+/* ============================================================
+   SYSTEM SETTINGS PAGE
+   ============================================================ */
+
+.settings-page {
+    padding-top: 32px;
+    padding-bottom: 55px;
+}
+
+
+/* ============================================================
+   PAGE HEADER
+   ============================================================ */
+
+.settings-page-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 30px;
+    margin-bottom: 26px;
+}
+
+
+.settings-page-head h1 {
+    margin-bottom: 6px;
+}
+
+
+.settings-page-head > div:first-child > p:last-child {
+    max-width: 720px;
+    margin-bottom: 0;
+    color: #6f7f86;
+}
+
+
+/* ============================================================
+   SETTINGS COUNT CARD
+   ============================================================ */
+
+.settings-count-card {
+    min-width: 175px;
+    padding: 15px 18px;
+
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    border: 1px solid #d7e2e6;
+    border-radius: 14px;
+
+    background: #ffffff;
+
+    box-shadow:
+        0 5px 16px rgba(25, 60, 70, 0.05);
+}
+
+
+.settings-count-number {
+    min-width: 42px;
+    height: 42px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 12px;
+
+    background: #e2f5f5;
+
+    color: #007e89;
+
+    font-size: 1.15rem;
+    font-weight: 900;
+}
+
+
+.settings-count-label {
+    color: #52656c;
+
+    font-size: 0.82rem;
+    font-weight: 700;
+
+    line-height: 1.25;
+}
+
+
+/* ============================================================
+   INFORMATION BANNER
+   ============================================================ */
+
+.settings-info-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+
+    margin-bottom: 22px;
+
+    padding: 16px 18px;
+
+    border: 1px solid #cfe6e8;
+    border-radius: 14px;
+
+    background: #eef9fa;
+}
+
+
+.settings-info-icon {
+    width: 34px;
+    height: 34px;
+
+    flex: 0 0 34px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+
+    background: #0796a3;
+
+    color: #ffffff;
+
+    font-weight: 900;
+}
+
+
+.settings-info-banner strong {
+    display: block;
+
+    margin-bottom: 3px;
+
+    color: #263a40;
+}
+
+
+.settings-info-banner p {
+    margin: 0;
+
+    color: #65787f;
+
+    font-size: 0.9rem;
+
+    line-height: 1.5;
+}
+
+
+/* ============================================================
+   MAIN SETTINGS PANEL
+   ============================================================ */
+
+.settings-main-panel {
+    padding: 28px;
+}
+
+
+/* ============================================================
+   PANEL HEADING
+   ============================================================ */
+
+.settings-panel-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    padding-bottom: 22px;
+    margin-bottom: 22px;
+
+    border-bottom: 1px solid #e1e8eb;
+}
+
+
+.settings-section-eyebrow {
+    margin: 0 0 5px;
+
+    color: #00909b;
+
+    font-size: 0.76rem;
+    font-weight: 900;
+
+    letter-spacing: 0.16em;
+}
+
+
+.settings-panel-heading h2 {
+    margin: 0 0 5px;
+
+    color: #203138;
+}
+
+
+.settings-panel-heading p:last-child {
+    margin: 0;
+
+    color: #75868d;
+}
+
+
+/* ============================================================
+   SETTINGS GRID
+   ============================================================ */
+
+.settings-grid {
+    display: grid;
+
+    grid-template-columns:
+        repeat(
+            2,
+            minmax(0, 1fr)
+        );
+
+    gap: 18px;
+}
+
+
+/* ============================================================
+   INDIVIDUAL SETTING CARD
+   ============================================================ */
+
+.settings-card {
+    display: flex;
+    flex-direction: column;
+
+    padding: 20px;
+
+    border: 1px solid #dce5e8;
+    border-radius: 16px;
+
+    background: #ffffff;
+
+    transition:
+        border-color 0.18s ease,
+        box-shadow 0.18s ease,
+        transform 0.18s ease;
+}
+
+
+.settings-card:hover {
+    border-color: #bcdadd;
+
+    box-shadow:
+        0 10px 28px rgba(22, 61, 70, 0.07);
+
+    transform: translateY(-1px);
+}
+
+
+/* ============================================================
+   CARD HEADER
+   ============================================================ */
+
+.settings-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+
+    gap: 12px;
+
+    margin-bottom: 13px;
+}
+
+
+.settings-card-title-area {
+    min-width: 0;
+
+    display: flex;
+    flex-direction: column;
+
+    align-items: flex-start;
+
+    gap: 8px;
+}
+
+
+/* ============================================================
+   CATEGORY BADGE
+   ============================================================ */
+
+.settings-category-badge {
+    display: inline-flex;
+    align-items: center;
+
+    min-height: 24px;
+
+    padding: 3px 9px;
+
+    border-radius: 999px;
+
+    background: #e3f6f6;
+
+    color: #00838e;
+
+    font-size: 0.68rem;
+    font-weight: 900;
+
+    letter-spacing: 0.1em;
+}
+
+
+/* ============================================================
+   RAW SETTING KEY
+   ============================================================ */
+
+.settings-key {
+    max-width: 100%;
+
+    padding: 0;
+
+    background: transparent;
+
+    color: #22343a;
+
+    font-family:
+        "Consolas",
+        "Courier New",
+        monospace;
+
+    font-size: 0.96rem;
+    font-weight: 800;
+
+    overflow-wrap: anywhere;
+}
+
+
+/* ============================================================
+   STATUS BADGE
+   ============================================================ */
+
+.settings-current-badge {
+    flex: 0 0 auto;
+
+    padding: 5px 9px;
+
+    border-radius: 999px;
+
+    background: #f1f5f6;
+
+    color: #74858c;
+
+    font-size: 0.69rem;
+    font-weight: 700;
+}
+
+
+/* ============================================================
+   SETTING DESCRIPTION
+   ============================================================ */
+
+.settings-description {
+    min-height: 44px;
+
+    margin: 0 0 18px;
+
+    color: #687a81;
+
+    font-size: 0.88rem;
+
+    line-height: 1.5;
+}
+
+
+/* ============================================================
+   UPDATE FORM
+   ============================================================ */
+
+.settings-update-form {
+    display: grid;
+
+    grid-template-columns:
+        minmax(0, 1fr)
+        auto;
+
+    align-items: end;
+
+    gap: 10px;
+
+    margin-top: auto;
+}
+
+
+/* ============================================================
+   VALUE AREA
+   ============================================================ */
+
+.settings-value-area {
+    display: flex;
+    flex-direction: column;
+
+    gap: 6px;
+
+    min-width: 0;
+}
+
+
+.settings-value-label {
+    color: #44575e;
+
+    font-size: 0.76rem;
+    font-weight: 800;
+}
+
+
+/* ============================================================
+   VALUE INPUT
+   ============================================================ */
+
+.settings-value-input {
+    width: 100%;
+
+    min-height: 44px;
+
+    padding:
+        0
+        13px;
+
+    border: 1px solid #cbd9df;
+    border-radius: 10px;
+
+    background: #fdfefe;
+
+    color: #26383e;
+
+    font: inherit;
+}
+
+
+.settings-value-input:hover {
+    border-color: #aabfc6;
+}
+
+
+.settings-value-input:focus {
+    outline: none;
+
+    border-color: #0698a5;
+
+    box-shadow:
+        0 0 0 3px rgba(6, 152, 165, 0.12);
+
+    background: #ffffff;
+}
+
+
+/* ============================================================
+   UPDATE BUTTON
+   ============================================================ */
+
+.settings-update-btn {
+    min-height: 44px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    gap: 8px;
+
+    padding:
+        0
+        16px;
+
+    border: none;
+    border-radius: 10px;
+
+    background: #0797a4;
+
+    color: #ffffff;
+
+    font-weight: 800;
+
+    cursor: pointer;
+
+    box-shadow:
+        0 7px 16px rgba(7, 151, 164, 0.15);
+
+    transition:
+        transform 0.16s ease,
+        filter 0.16s ease;
+}
+
+
+.settings-update-btn:hover {
+    filter: brightness(0.96);
+
+    transform: translateY(-1px);
+}
+
+
+.settings-update-btn:active {
+    transform: translateY(0);
+}
+
+
+.settings-update-arrow {
+    font-size: 1rem;
+}
+
+
+/* ============================================================
+   EMPTY STATE
+   ============================================================ */
+
+.settings-empty-state {
+    padding: 50px 20px;
+
+    text-align: center;
+
+    color: #6f8188;
+}
+
+
+.settings-empty-icon {
+    width: 52px;
+    height: 52px;
+
+    margin:
+        0
+        auto
+        14px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 14px;
+
+    background: #e7f6f6;
+
+    color: #008995;
+
+    font-size: 1.5rem;
+}
+
+
+.settings-empty-state h3 {
+    margin:
+        0
+        0
+        5px;
+
+    color: #293b41;
+}
+
+
+.settings-empty-state p {
+    margin: 0;
+}
+
+
+/* ============================================================
+   TABLET
+   ============================================================ */
+
+@media (max-width: 1050px) {
+
+    .settings-grid {
+        grid-template-columns: 1fr;
+    }
+
+}
+
+
+/* ============================================================
+   MOBILE
+   ============================================================ */
+
+@media (max-width: 720px) {
+
+    .settings-page-head {
+        flex-direction: column;
+
+        align-items: stretch;
+    }
+
+
+    .settings-count-card {
+        width: 100%;
+    }
+
+
+    .settings-main-panel {
+        padding: 18px;
+    }
+
+
+    .settings-card {
+        padding: 17px;
+    }
+
+
+    .settings-card-header {
+        flex-direction: column;
+    }
+
+
+    .settings-update-form {
+        grid-template-columns: 1fr;
+    }
+
+
+    .settings-update-btn {
+        width: 100%;
+    }
+
+}
+/* ============================================================
+   SYSTEM SETTINGS - INPUT TYPE IMPROVEMENTS
+   ============================================================ */
+
+
+/* ============================================================
+   SETTING TYPE BADGES
+   ============================================================ */
+
+.settings-type-badge {
+    flex: 0 0 auto;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    min-height: 25px;
+
+    padding: 4px 9px;
+
+    border-radius: 999px;
+
+    font-size: 0.66rem;
+    font-weight: 900;
+
+    letter-spacing: 0.08em;
+}
+
+
+/* BOOLEAN */
+.settings-type-badge.boolean {
+    background: #e8f7ef;
+    color: #27815a;
+}
+
+
+/* TIME */
+.settings-type-badge.time {
+    background: #eef2fb;
+    color: #526fb0;
+}
+
+
+/* NUMBER */
+.settings-type-badge.number {
+    background: #f4effb;
+    color: #7757a5;
+}
+
+
+/* TEXT */
+.settings-type-badge.text {
+    background: #f1f4f5;
+    color: #718087;
+}
+
+
+/* ============================================================
+   BOOLEAN YES / NO CONTROL
+   ============================================================ */
+
+.settings-boolean-control {
+    display: grid;
+
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+
+    width: 100%;
+
+    padding: 4px;
+
+    border: 1px solid #ccdce0;
+
+    border-radius: 11px;
+
+    background: #f3f7f8;
+}
+
+
+/* Hide actual radio control */
+.settings-toggle-option input {
+    position: absolute;
+
+    opacity: 0;
+
+    pointer-events: none;
+}
+
+
+/* Label */
+.settings-toggle-option {
+    position: relative;
+
+    cursor: pointer;
+}
+
+
+/* Visible Yes / No button */
+.settings-toggle-option span {
+    min-height: 36px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    border-radius: 8px;
+
+    color: #6b7d83;
+
+    font-size: 0.84rem;
+
+    font-weight: 800;
+
+    transition:
+        background 0.16s ease,
+        color 0.16s ease,
+        box-shadow 0.16s ease;
+}
+
+
+/* Selected value */
+.settings-toggle-option input:checked + span {
+    background: #0797a4;
+
+    color: #ffffff;
+
+    box-shadow:
+        0 4px 12px rgba(7, 151, 164, 0.18);
+}
+
+
+/* Keyboard accessibility */
+.settings-toggle-option input:focus-visible + span {
+    outline: 3px solid rgba(7, 151, 164, 0.22);
+
+    outline-offset: 2px;
+}
+
+
+/* ============================================================
+   TIME PICKER
+   ============================================================ */
+
+.settings-value-input[type="time"] {
+    cursor: pointer;
+}
+
+
+.settings-value-input[type="time"]::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+
+    opacity: 0.65;
+}
+
+
+/* ============================================================
+   NUMBER INPUT
+   ============================================================ */
+
+.settings-value-input[type="number"] {
+    font-variant-numeric: tabular-nums;
+}
+
+
+/* ============================================================
+   BETTER CONTROL ALIGNMENT
+   ============================================================ */
+
+.settings-value-area {
+    min-height: 69px;
+}
+
+
+.settings-update-btn {
+    min-width: 118px;
+}
+
+
+/* ============================================================
+   MOBILE
+   ============================================================ */
+
+@media (max-width: 720px) {
+
+    .settings-boolean-control {
+        width: 100%;
+    }
+
+
+    .settings-update-btn {
+        min-width: 0;
+    }
+
+}

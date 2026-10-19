@@ -1,27 +1,563 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head th:replace="~{fragments :: head('Settings')}"></head>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org">
+
+<head th:replace="~{fragments :: head('System Settings')}"></head>
+
 <body>
+
+<!-- =========================================================
+     SHARED NAVIGATION
+     ========================================================= -->
 <nav th:replace="~{fragments :: nav}"></nav>
-<main class="container">
+
+
+<!-- =========================================================
+     MAIN CONTENT
+     ========================================================= -->
+<main class="container settings-page">
+
+
+    <!-- =====================================================
+         ALERTS
+         ===================================================== -->
     <div th:replace="~{fragments :: alerts}"></div>
-    <section class="page-head">
+
+
+    <!-- =====================================================
+         PAGE HEADER
+         ===================================================== -->
+    <section class="page-head settings-page-head">
+
         <div>
-            <p class="eyebrow">CONFIGURABLE POLICY</p>
-            <h1>System settings</h1>
-            <p>Core rules are stored as settings instead of being hard-coded into the UI.</p>
+
+            <p class="eyebrow">
+                CONFIGURABLE POLICY
+            </p>
+
+            <h1>
+                System settings
+            </h1>
+
+            <p>
+                Configure the operational rules used by SpaceHub
+                without changing the application source code.
+            </p>
+
         </div>
-    </section>
-    <section class="panel">
-        <div class="setting-row" th:each="s:${settings}">
-            <div><b th:text="${s.key}"></b><p th:text="${s.description}"></p></div>
-            <form th:action="@{/admin/settings}" method="post">
-                <input type="hidden" name="key" th:value="${s.key}">
-                <input name="value" th:value="${s.value}" required>
-                <button class="btn ghost small-btn">Update</button>
-            </form>
+
+
+        <!-- SETTINGS COUNT -->
+        <div class="settings-count-card">
+
+            <span class="settings-count-number"
+                  th:text="${#lists.size(settings)}">
+                0
+            </span>
+
+            <span class="settings-count-label">
+                Configurable settings
+            </span>
+
         </div>
+
     </section>
+
+
+    <!-- =====================================================
+         INFORMATION BANNER
+         ===================================================== -->
+    <section class="settings-info-banner">
+
+        <div class="settings-info-icon">
+            i
+        </div>
+
+        <div>
+
+            <strong>
+                Administrative configuration
+            </strong>
+
+            <p>
+                Changes made here affect system rules and behaviour.
+                Review each value carefully before updating it.
+            </p>
+
+        </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         MAIN SETTINGS PANEL
+         ===================================================== -->
+    <section class="panel settings-main-panel">
+
+
+        <!-- =================================================
+             PANEL HEADING
+             ================================================= -->
+        <div class="settings-panel-heading">
+
+            <div>
+
+                <p class="settings-section-eyebrow">
+                    SYSTEM CONFIGURATION
+                </p>
+
+                <h2>
+                    Application rules
+                </h2>
+
+                <p>
+                    SpaceHub automatically provides the appropriate
+                    control for each setting type.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <!-- =================================================
+             SETTINGS GRID
+             ================================================= -->
+        <div class="settings-grid">
+
+
+            <!-- =================================================
+                 INDIVIDUAL SETTING CARD
+                 ================================================= -->
+            <article class="settings-card"
+                     th:each="s : ${settings}">
+
+
+                <!-- =============================================
+                     CARD HEADER
+                     ============================================= -->
+                <div class="settings-card-header">
+
+
+                    <div class="settings-card-title-area">
+
+
+                        <!-- CATEGORY BADGE -->
+                        <span class="settings-category-badge"
+                              th:text="${
+                                  #strings.startsWith(s.key, 'booking.')
+                                      ? 'BOOKING'
+                                      :
+                                  (
+                                      #strings.startsWith(s.key, 'course.')
+                                          ? 'COURSE'
+                                          :
+                                      (
+                                          #strings.startsWith(s.key, 'lecturer.')
+                                              ? 'LECTURER'
+                                              :
+                                          (
+                                              #strings.startsWith(s.key, 'student.')
+                                                  ? 'STUDENT'
+                                                  :
+                                              (
+                                                  #strings.startsWith(s.key, 'admin.')
+                                                      ? 'ADMIN'
+                                                      :
+                                                  (
+                                                      #strings.startsWith(s.key, 'notification.')
+                                                          ? 'NOTIFICATION'
+                                                          :
+                                                      (
+                                                          #strings.startsWith(s.key, 'reminder.')
+                                                              ? 'REMINDER'
+                                                              : 'SYSTEM'
+                                                      )
+                                                  )
+                                              )
+                                          )
+                                      )
+                                  )
+                              }">
+
+                            SYSTEM
+
+                        </span>
+
+
+                        <!-- RAW SETTING KEY -->
+                        <code class="settings-key"
+                              th:text="${s.key}">
+
+                            booking.day.start
+
+                        </code>
+
+                    </div>
+
+
+                    <!-- =========================================
+                         VALUE TYPE BADGE
+                         ========================================= -->
+
+                    <!-- BOOLEAN -->
+                    <span class="settings-type-badge boolean"
+                          th:if="${s.value == 'true' or s.value == 'false'}">
+
+                        BOOLEAN
+
+                    </span>
+
+
+                    <!-- TIME -->
+                    <span class="settings-type-badge time"
+                          th:if="${
+                              s.value != 'true'
+                              and
+                              s.value != 'false'
+                              and
+                              (
+                                  s.key == 'booking.day.start'
+                                  or
+                                  s.key == 'booking.day.end'
+                              )
+                          }">
+
+                        TIME
+
+                    </span>
+
+
+                    <!-- NUMBER -->
+                    <span class="settings-type-badge number"
+                          th:if="${
+                              s.value != 'true'
+                              and
+                              s.value != 'false'
+                              and
+                              s.key != 'booking.day.start'
+                              and
+                              s.key != 'booking.day.end'
+                              and
+                              (
+                                  #strings.contains(s.key, '.days')
+                                  or
+                                  #strings.contains(s.key, '.hours')
+                                  or
+                                  #strings.contains(s.key, '.minutes')
+                                  or
+                                  #strings.contains(s.key, '.bookings')
+                                  or
+                                  #strings.contains(s.key, '.allowance')
+                                  or
+                                  #strings.contains(s.key, '.limit')
+                                  or
+                                  #strings.contains(s.key, '.count')
+                                  or
+                                  #strings.contains(s.key, '.capacity')
+                                  or
+                                  #strings.contains(s.key, '.weight')
+                                  or
+                                  #strings.contains(s.key, '.percentage')
+                              )
+                          }">
+
+                        NUMBER
+
+                    </span>
+
+
+                    <!-- TEXT -->
+                    <span class="settings-type-badge text"
+                          th:if="${
+                              s.value != 'true'
+                              and
+                              s.value != 'false'
+                              and
+                              s.key != 'booking.day.start'
+                              and
+                              s.key != 'booking.day.end'
+                              and
+                              !#strings.contains(s.key, '.days')
+                              and
+                              !#strings.contains(s.key, '.hours')
+                              and
+                              !#strings.contains(s.key, '.minutes')
+                              and
+                              !#strings.contains(s.key, '.bookings')
+                              and
+                              !#strings.contains(s.key, '.allowance')
+                              and
+                              !#strings.contains(s.key, '.limit')
+                              and
+                              !#strings.contains(s.key, '.count')
+                              and
+                              !#strings.contains(s.key, '.capacity')
+                              and
+                              !#strings.contains(s.key, '.weight')
+                              and
+                              !#strings.contains(s.key, '.percentage')
+                          }">
+
+                        TEXT
+
+                    </span>
+
+                </div>
+
+
+                <!-- =============================================
+                     DESCRIPTION
+                     ============================================= -->
+                <p class="settings-description"
+                   th:text="${s.description}">
+
+                    Setting description
+
+                </p>
+
+
+                <!-- =============================================
+                     UPDATE FORM
+                     ============================================= -->
+                <form th:action="@{/admin/settings}"
+                      method="post"
+                      class="settings-update-form">
+
+
+                    <!-- SETTING KEY -->
+                    <input type="hidden"
+                           name="key"
+                           th:value="${s.key}">
+
+
+                    <div class="settings-value-area">
+
+
+                        <label class="settings-value-label">
+                            Current value
+                        </label>
+
+
+
+                        <!-- =====================================
+                             BOOLEAN CONTROL
+                             TRUE / FALSE
+
+                             This automatically applies to any
+                             stored setting whose current value
+                             is true or false.
+                             ===================================== -->
+                        <div class="settings-boolean-control"
+                             th:if="${s.value == 'true' or s.value == 'false'}">
+
+
+                            <label class="settings-toggle-option">
+
+
+                                <input type="radio"
+                                       name="value"
+                                       value="true"
+                                       th:checked="${s.value == 'true'}"
+                                       required>
+
+
+                                <span>
+                                    Yes
+                                </span>
+
+
+                            </label>
+
+
+                            <label class="settings-toggle-option">
+
+
+                                <input type="radio"
+                                       name="value"
+                                       value="false"
+                                       th:checked="${s.value == 'false'}"
+                                       required>
+
+
+                                <span>
+                                    No
+                                </span>
+
+
+                            </label>
+
+
+                        </div>
+
+
+
+                        <!-- =====================================
+                             TIME CONTROL
+                             ===================================== -->
+                        <input th:if="${
+                                   s.value != 'true'
+                                   and
+                                   s.value != 'false'
+                                   and
+                                   (
+                                       s.key == 'booking.day.start'
+                                       or
+                                       s.key == 'booking.day.end'
+                                   )
+                               }"
+                               class="settings-value-input"
+                               type="time"
+                               name="value"
+                               th:value="${s.value}"
+                               required>
+
+
+
+                        <!-- =====================================
+                             NUMBER CONTROL
+                             ===================================== -->
+                        <input th:if="${
+                                   s.value != 'true'
+                                   and
+                                   s.value != 'false'
+                                   and
+                                   s.key != 'booking.day.start'
+                                   and
+                                   s.key != 'booking.day.end'
+                                   and
+                                   (
+                                       #strings.contains(s.key, '.days')
+                                       or
+                                       #strings.contains(s.key, '.hours')
+                                       or
+                                       #strings.contains(s.key, '.minutes')
+                                       or
+                                       #strings.contains(s.key, '.bookings')
+                                       or
+                                       #strings.contains(s.key, '.allowance')
+                                       or
+                                       #strings.contains(s.key, '.limit')
+                                       or
+                                       #strings.contains(s.key, '.count')
+                                       or
+                                       #strings.contains(s.key, '.capacity')
+                                       or
+                                       #strings.contains(s.key, '.weight')
+                                       or
+                                       #strings.contains(s.key, '.percentage')
+                                   )
+                               }"
+                               class="settings-value-input"
+                               type="number"
+                               name="value"
+                               th:value="${s.value}"
+                               step="any"
+                               required>
+
+
+
+                        <!-- =====================================
+                             TEXT FALLBACK
+
+                             Any setting that is not confidently
+                             identified as Boolean, time or number
+                             remains editable as text.
+                             ===================================== -->
+                        <input th:if="${
+                                   s.value != 'true'
+                                   and
+                                   s.value != 'false'
+                                   and
+                                   s.key != 'booking.day.start'
+                                   and
+                                   s.key != 'booking.day.end'
+                                   and
+                                   !#strings.contains(s.key, '.days')
+                                   and
+                                   !#strings.contains(s.key, '.hours')
+                                   and
+                                   !#strings.contains(s.key, '.minutes')
+                                   and
+                                   !#strings.contains(s.key, '.bookings')
+                                   and
+                                   !#strings.contains(s.key, '.allowance')
+                                   and
+                                   !#strings.contains(s.key, '.limit')
+                                   and
+                                   !#strings.contains(s.key, '.count')
+                                   and
+                                   !#strings.contains(s.key, '.capacity')
+                                   and
+                                   !#strings.contains(s.key, '.weight')
+                                   and
+                                   !#strings.contains(s.key, '.percentage')
+                               }"
+                               class="settings-value-input"
+                               type="text"
+                               name="value"
+                               th:value="${s.value}"
+                               autocomplete="off"
+                               required>
+
+
+                    </div>
+
+
+
+                    <!-- =========================================
+                         UPDATE BUTTON
+                         ========================================= -->
+                    <button type="submit"
+                            class="settings-update-btn">
+
+                        <span>
+                            Update
+                        </span>
+
+                        <span class="settings-update-arrow">
+                            →
+                        </span>
+
+                    </button>
+
+
+                </form>
+
+
+            </article>
+
+
+        </div>
+
+
+
+        <!-- =================================================
+             EMPTY STATE
+             ================================================= -->
+        <div class="settings-empty-state"
+             th:if="${#lists.isEmpty(settings)}">
+
+            <div class="settings-empty-icon">
+                ⚙
+            </div>
+
+            <h3>
+                No settings available
+            </h3>
+
+            <p>
+                No configurable system settings are currently stored.
+            </p>
+
+        </div>
+
+
+    </section>
+
+
 </main>
+
+
 </body>
 </html>
