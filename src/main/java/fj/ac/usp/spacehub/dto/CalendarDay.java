@@ -1,6 +1,6 @@
 package fj.ac.usp.spacehub.dto;
-import fj.ac.usp.spacehub.model.Booking;
 import java.time.LocalDate;
 import java.util.List;
 
-public record CalendarDay(LocalDate date, boolean inMonth, List<Booking> bookings) {}
+/** A day cell in the month grid. Entries are bookings and busy times, sorted by start time. */
+public record CalendarDay(LocalDate date, boolean inMonth, boolean today, List<CalendarEntry> entries) {}

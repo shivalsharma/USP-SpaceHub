@@ -1,64 +1,594 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org">
+
 <head th:replace="~{fragments :: head('Profile & Timetable')}"></head>
+
 <body>
+
+<!-- =========================================================
+     SHARED NAVIGATION
+     ========================================================= -->
 <nav th:replace="~{fragments :: nav}"></nav>
-<main class="container">
+
+
+<!-- =========================================================
+     MAIN PROFILE PAGE
+     ========================================================= -->
+<main class="container profile-page">
+
+    <!-- Shared alerts -->
     <div th:replace="~{fragments :: alerts}"></div>
-    <section class="page-head">
-        <div>
-            <p class="eyebrow">AVAILABILITY PROFILE</p>
-            <h1 th:text="${user.name}"></h1>
-            <p th:text="${user.userCode}+' · '+${user.email}+' · '+${user.role}+' · '+${user.department}"></p>
-        </div>
-    </section>
-    <div class="grid-2">
-        <section class="panel">
-            <h2>Assigned courses</h2>
-            <div th:if="${#lists.isEmpty(courses)}" class="empty">No assigned lecturer courses.</div>
-            <div class="chips">
-                <span class="chip" th:each="c:${courses}" th:text="${c.code}+' · '+${c.name}"></span>
+
+
+    <!-- =====================================================
+         PROFILE HEADER
+         ===================================================== -->
+    <section class="page-head profile-page-head">
+
+        <div class="profile-header-left">
+
+
+            <!-- =================================================
+                 PROFILE PICTURE
+                 ================================================= -->
+            <div class="profile-avatar">
+
+                <!-- Uploaded picture -->
+                <img th:if="${user.profilePicture != null and !#strings.isEmpty(user.profilePicture)}"
+                     th:src="@{'/uploads/profile-pictures/' + ${user.profilePicture}}"
+                     alt="Profile picture"
+                     class="profile-avatar-image">
+
+
+                <!-- Fallback initial -->
+                <span th:unless="${user.profilePicture != null and !#strings.isEmpty(user.profilePicture)}"
+                      th:text="${#strings.substring(user.name,0,1)}">
+                    A
+                </span>
+
             </div>
-        </section>
-        <section class="panel">
-            <h2>Add timetable / busy time</h2>
-            <form th:action="@{/profile/schedule}" th:object="${scheduleForm}" method="post" class="form-grid compact">
-                <label>Date<input type="date" th:field="*{date}" required></label>
-                <label>Busy-time type<select th:field="*{title}" required>
-                    <option value="">Select type</option>
-                    <option th:each="c:${courses}" th:value="${c.code}+' Lecture'" th:text="${c.code}+' · Lecture'"></option>
-                    <option value="Staff meeting">Staff meeting</option>
-                    <option value="Consultation">Consultation</option>
-                    <option value="Assessment / marking">Assessment / marking</option>
-                    <option value="Unavailable">Other unavailable time</option>
-                </select></label>
-                <label>Start<input type="time" th:field="*{startTime}" required></label>
-                <label>End<input type="time" th:field="*{endTime}" required></label>
-                <div class="span-2"><button class="btn primary">Add busy time</button></div>
-            </form>
-        </section>
-    </div>
-    <section class="panel table-wrap">
-        <h2>My timetable / busy entries</h2>
-        <table>
-            <thead><tr><th>Date</th><th>Time</th><th>Title</th><th></th></tr></thead>
-            <tbody>
-            <tr th:each="s:${entries}">
-                <td th:text="${s.date}"></td>
-                <td th:text="${s.startTime}+'–'+${s.endTime}"></td>
-                <td th:text="${s.title}"></td>
-                <td>
-                    <form th:action="@{'/profile/schedule/'+${s.id}+'/delete'}" method="post">
-                        <button class="btn danger small-btn">Remove</button>
-                    </form>
-                </td>
-            </tr>
-            <tr th:if="${#lists.isEmpty(entries)}">
-                <td colspan="4" class="empty">No timetable entries. Add your lecture/busy times so booking clashes can be blocked.</td>
-            </tr>
-            </tbody>
-        </table>
+
+
+
+            <!-- =================================================
+                 PROFILE INFORMATION
+                 ================================================= -->
+            <div class="profile-heading-info">
+
+                <p class="eyebrow">
+                    AVAILABILITY PROFILE
+                </p>
+
+
+                <h1 th:text="${user.name}">
+                    Ana Singh
+                </h1>
+
+
+                <div class="profile-user-meta">
+
+                    <span class="profile-meta-item"
+                          th:text="${user.userCode}">
+                        S12345678
+                    </span>
+
+
+                    <span class="profile-meta-divider">
+                        ·
+                    </span>
+
+
+                    <span class="profile-meta-item"
+                          th:text="${user.email}">
+                        student1@usp.ac.fj
+                    </span>
+
+
+                    <span class="profile-meta-divider">
+                        ·
+                    </span>
+
+
+                    <span class="profile-role-badge"
+                          th:text="${user.role}">
+                        STUDENT
+                    </span>
+
+
+                    <span th:if="${user.department != null and !#strings.isEmpty(user.department)}"
+                          class="profile-meta-divider">
+                        ·
+                    </span>
+
+
+                    <span th:if="${user.department != null and !#strings.isEmpty(user.department)}"
+                          class="profile-meta-item"
+                          th:text="${user.department}">
+                        SITEMP
+                    </span>
+
+                </div>
+
+
+                <!-- ACCOUNT STATUS -->
+                <div class="profile-account-status"
+                     th:classappend="${user.active ? ' active' : ' inactive'}">
+
+                    <span class="profile-status-dot"></span>
+
+                    <span th:text="${user.active ? 'Active Account' : 'Inactive Account'}">
+                        Active Account
+                    </span>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+
+        <!-- =================================================
+             EDIT PROFILE BUTTON
+             ================================================= -->
+        <a th:href="@{/profile/edit}"
+           class="edit-profile-btn">
+
+            <span class="edit-profile-icon">
+                ✎
+            </span>
+
+            <span>
+                Edit Profile
+            </span>
+
+        </a>
+
     </section>
+
+
+
+    <!-- =====================================================
+         PROFILE TOP GRID
+         ===================================================== -->
+    <div class="grid-2">
+
+
+        <!-- =================================================
+             ASSIGNED COURSES
+             ================================================= -->
+        <section class="panel">
+
+            <div class="profile-section-heading">
+
+                <div>
+
+                    <p class="profile-section-eyebrow">
+                        COURSES
+                    </p>
+
+                    <h2>
+                        Assigned courses
+                    </h2>
+
+                </div>
+
+            </div>
+
+
+            <!-- NO COURSES -->
+            <div th:if="${#lists.isEmpty(courses)}"
+                 class="empty">
+
+                No assigned lecturer courses.
+
+            </div>
+
+
+            <!-- ASSIGNED COURSES -->
+            <div class="chips"
+                 th:if="${!#lists.isEmpty(courses)}">
+
+                <span class="chip"
+                      th:each="c : ${courses}"
+                      th:text="${c.code + ' · ' + c.name}">
+
+                    CS000 · Example Course
+
+                </span>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =================================================
+             ADD TIMETABLE / BUSY TIME
+             ================================================= -->
+        <section class="panel">
+
+            <div class="profile-section-heading">
+
+                <div>
+
+                    <p class="profile-section-eyebrow">
+                        AVAILABILITY
+                    </p>
+
+                    <h2>
+                        Add timetable / busy time
+                    </h2>
+
+                </div>
+
+            </div>
+
+
+            <form th:action="@{/profile/schedule}"
+                  th:object="${scheduleForm}"
+                  method="post"
+                  class="form-grid compact">
+
+
+                <!-- =================================================
+                     DATE
+                     Past dates cannot be selected.
+                     ================================================= -->
+                <label>
+
+                    Date
+
+                    <input type="date"
+                           id="busyDate"
+                           th:field="*{date}"
+                           th:min="${today}"
+                           required>
+
+                </label>
+
+
+
+                <!-- =================================================
+                     BUSY TIME TYPE
+                     ================================================= -->
+                <label>
+
+                    Busy-time type
+
+                    <select th:field="*{title}"
+                            required>
+
+                        <option value="">
+                            Select type
+                        </option>
+
+
+                        <!-- Lecturer courses -->
+                        <option th:each="c : ${courses}"
+                                th:value="${c.code + ' Lecture'}"
+                                th:text="${c.code + ' · Lecture'}">
+
+                            Course Lecture
+
+                        </option>
+
+
+                        <option value="Staff meeting">
+                            Staff meeting
+                        </option>
+
+
+                        <option value="Consultation">
+                            Consultation
+                        </option>
+
+
+                        <option value="Assessment / marking">
+                            Assessment / marking
+                        </option>
+
+
+                        <option value="Unavailable">
+                            Other unavailable time
+                        </option>
+
+                    </select>
+
+                </label>
+
+
+
+                <!-- =================================================
+                     START TIME
+                     ================================================= -->
+                <label>
+
+                    Start
+
+                    <input type="time"
+                           th:field="*{startTime}"
+                           required>
+
+                </label>
+
+
+
+                <!-- =================================================
+                     END TIME
+                     ================================================= -->
+                <label>
+
+                    End
+
+                    <input type="time"
+                           th:field="*{endTime}"
+                           required>
+
+                </label>
+
+
+
+                <!-- =================================================
+                     SUBMIT BUTTON
+                     ================================================= -->
+                <div class="span-2">
+
+                    <button type="submit"
+                            class="btn primary">
+
+                        Add busy time
+
+                    </button>
+
+                </div>
+
+            </form>
+
+        </section>
+
+    </div>
+
+
+
+    <!-- =====================================================
+         TIMETABLE / BUSY ENTRIES
+         ===================================================== -->
+    <section class="panel table-wrap profile-timetable-panel">
+
+
+        <div class="profile-section-heading">
+
+            <div>
+
+                <p class="profile-section-eyebrow">
+                    MY AVAILABILITY
+                </p>
+
+                <h2>
+                    My timetable / busy entries
+                </h2>
+
+                <p>
+                    These times show on your
+                    <a th:href="@{/calendar}">calendar</a>
+                    and help prevent booking clashes.
+                </p>
+
+            </div>
+
+        </div>
+
+
+
+        <table>
+
+            <thead>
+
+            <tr>
+
+                <th>
+                    Date
+                </th>
+
+                <th>
+                    Time
+                </th>
+
+                <th>
+                    Title
+                </th>
+
+                <th>
+                    Action
+                </th>
+
+            </tr>
+
+            </thead>
+
+
+            <tbody>
+
+
+            <!-- =================================================
+                 EXISTING ENTRIES
+                 ================================================= -->
+            <tr th:each="s : ${entries}">
+
+                <td th:text="${s.date}">
+                    2026-09-14
+                </td>
+
+
+                <td th:text="${s.startTime + '–' + s.endTime}">
+                    09:00–10:00
+                </td>
+
+
+                <td th:text="${s.title}">
+                    Lecture
+                </td>
+
+
+                <td>
+
+                    <div class="buttons">
+
+                        <!-- Opens the calendar on this entry's month -->
+                        <a class="btn ghost small-btn"
+                           th:href="@{/calendar(month=${#temporals.format(s.date, 'yyyy-MM')})}">
+
+                            View on calendar
+
+                        </a>
+
+
+                        <form th:action="@{'/profile/schedule/' + ${s.id} + '/delete'}"
+                              method="post">
+
+                            <button type="submit"
+                                    class="btn danger small-btn">
+
+                                Remove
+
+                            </button>
+
+                        </form>
+
+                    </div>
+
+                </td>
+
+            </tr>
+
+
+
+            <!-- =================================================
+                 EMPTY TABLE
+                 ================================================= -->
+            <tr th:if="${#lists.isEmpty(entries)}">
+
+                <td colspan="4"
+                    class="empty">
+
+                    No timetable entries. Add your lecture or busy
+                    times so booking clashes can be blocked.
+
+                </td>
+
+            </tr>
+
+
+            </tbody>
+
+        </table>
+
+    </section>
+
+
 </main>
+
+
+
+<!-- =========================================================
+     DATE RESTRICTION
+
+     Thymeleaf sets the minimum date from the server.
+
+     JavaScript also sets it using the browser's local date.
+     This provides an additional client-side safeguard.
+     ========================================================= -->
+<script>
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        function () {
+
+            const dateInput =
+                document.getElementById(
+                    "busyDate"
+                );
+
+
+            if (!dateInput) {
+
+                return;
+
+            }
+
+
+            /*
+             * Get today's date using the user's
+             * local browser timezone.
+             */
+            const today =
+                new Date();
+
+
+            const year =
+                today.getFullYear();
+
+
+            const month =
+                String(
+                    today.getMonth() + 1
+                ).padStart(
+                    2,
+                    "0"
+                );
+
+
+            const day =
+                String(
+                    today.getDate()
+                ).padStart(
+                    2,
+                    "0"
+                );
+
+
+            const minimumDate =
+                year
+                +
+                "-"
+                +
+                month
+                +
+                "-"
+                +
+                day;
+
+
+            /*
+             * Prevent selection of dates
+             * earlier than today.
+             */
+            dateInput.min =
+                minimumDate;
+
+
+            /*
+             * If a past value somehow remains
+             * in the field, clear it.
+             */
+            if (
+                dateInput.value
+                &&
+                dateInput.value < minimumDate
+            ) {
+
+                dateInput.value =
+                    "";
+
+            }
+
+        }
+    );
+
+</script>
+
+
 </body>
 </html>
